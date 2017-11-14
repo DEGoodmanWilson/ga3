@@ -569,14 +569,14 @@ void ga2Population::setMinRanges(std::vector<float> ranges)
 std::vector<ga2Gene> ga2Population::getBestFitChromosome(void)
 {
 	int i;
-	float f = 0;
+	double f = 0;
 	for(i = 0; i < _size; ++i)
 	{
 		f = _chromosomes[i].getFitness();
-		if(f = _maxFitness)
+		if(f == _maxFitness)
 			return _chromosomes[i].getGenes();
 	}
-	return NULL;
+	return {};
 }
 
 /**
