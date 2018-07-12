@@ -1,17 +1,35 @@
 cmake_minimum_required(VERSION 3.8)
-set(PROJECT_NAME ga2)
 
-project(${PROJECT_NAME})
+project(ga3)
 
 set(CMAKE_CXX_STANDARD 17)
 
 include(conanbuildinfo.cmake)
 CONAN_BASIC_SETUP()
 
-set(SOURCE_FILES ga2.h ga2Chromosome.h ga2Chromosome.cpp ga2Gene.h ga2Population.h ga2Population.cpp)
+include_directories(SYSTEM PRIVATE .)
 
-add_library(${PROJECT_NAME} ${SOURCE_FILES})
-target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
+set(SOURCE_FILES
+        ga3/optional.h
+        ga3/gene.h
+        ga3/chromosome.hpp
+#        ga3/chromosome.cpp
+#        ga3/population.h
+#        ga3/population.cpp
+#        ga3/ga2.h
+        )
+
+set(THREADPOOL_SOURCE_FILES
+        ThreadPool/ThreadSafeQueue.h
+        ThreadPool/ThreadPool.h
+        )
+
+#add_library(${PROJECT_NAME} ${SOURCE_FILES} ${THREADPOOL_SOURCE_FILES})
+#target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
 
 # Tests
-# add_subdirectory(tests)
+#if (BUILD_LUNA_TESTS)
+    message(STATUS "Building GA2 with Tests")
+
+    add_subdirectory(tests)
+#endif ()
