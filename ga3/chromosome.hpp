@@ -87,81 +87,6 @@ public:
     }
 
 
-
-//    chromosome(const chromosome &p1, const chromosome &p2); //TODO crossover mechanism?
-
-    ///Evaluate this chromosome. Don't want to do this lazily, _or_ at construction time, necessarily. We want to be smart about it. TODO can we be _smarter_?
-//    double evaluate(void);
-
-    ///Returns the fitness of a chromosome.
-//    double getFitness(void) const;
-
-    ///Returns the size of the chromosome.
-    /**
-     * Returns the size of the chromosome as set by the constructor
-     * or by calling chromosome::setSize()
-     */
-//    int getSize(void) const
-//    { return genes_.size(); };
-
-
-    ///Sets the minimum values for each gene.
-//    static void setMinRanges(std::vector<gene> ranges);
-
-    ///Sets the maximum values for each gene.
-//    static void setMaxRanges(std::vector<gene> ranges);
-
-    ///Sets the gene located at index.
-    /**
-     * \param index Index of the gene to set
-     * \param value Value to set gene to
-     *
-     * Sets the value of a particular gene.
-     * \bug Does not check against upper and lower bounds for that gene.
-     */
-//    void set_gene(size_t index, gene value)
-//    {
-//        if(index >= N) throw std::out_of_range{"Index " + std::to_string(index) + " out of range"};
-//        genes_[index] = value;
-//        fitness_ = OPT_NS::nullopt;
-//    };
-    ///Returns a vector of the chromosome's genes.
-    /**
-     * Returns a vector containing the chromosome's genes.
-     */
-    std::array<gene, N> get_genes()
-    {
-        return genes_;
-    };
-
-
-    // Slicing and concatenation operators
-
-    ///Grabs an arbitrary slice of a chromosome.
-//    chromosome operator()(int start, int end);
-//    gene operator[](int idx);
-
-
-    ///Concatenate two chromosomes or chromosome fragments together.
-//    chromosome &operator+(chromosome &&a);
-
-//    chromosome &operator+(const chromosome &a);
-
-
-
-    // Comparison operators
-
-//    bool operator<(const chromosome &a) const;
-
-    ///Compare two chromosomes for equality.
-//    bool operator==(const chromosome &a);
-
-    ///Print the contents of a chromosome.
-//    friend std::ostream &operator<<(std::ostream &out, const chromosome &chromo);
-
-    ///Read in a chromosome.
-//    friend std::istream &operator>>(std::istream &in, chromosome &chromo);
-
     static std::array<gene_range, N> gene_bounds;
     using evaluation_function_t = std::function<double(std::array<gene, N>)>;
     static evaluation_function_t evaluation_function;
@@ -202,8 +127,45 @@ public:
             }
                 break;
             case crossover_kind_t::two_point:
+            {
+                // TODO refactor this into a private function
+                std::uniform_int_distribution<uint64_t> dis_1(0, N - 2);
+                auto co_point_1 = dis_1(chromosome<N>::gen_);
+                std::uniform_int_distribution<uint64_t> dis_2(co_point_1+1, N - 1);
+                auto co_point_2 = dis_2(chromosome<N>::gen_);
+                uint64_t i;
+                for (i = 0; i < co_point_1; ++i)
+                {
+                    result[i] = this->at(i);
+                }
+                for (; i < co_point_2; ++i)
+                {
+                    result[i] = rhs.at(i);
+
+                }
+                for (; i < N; ++i)
+                {
+                    result[i] = this->at(i);
+                }
+            }
                 break;
             case crossover_kind_t::uniform:
+            {
+                // TODO refactor this into a private function
+                std::uniform_int_distribution<uint64_t> dis(0, 1);
+                for(uint64_t i=0; i < N; ++i)
+                {
+                    auto flip = dis(chromosome<N>::gen_);
+                    if(flip == 0)
+                    {
+                        result[i] = this->at(i);
+                    }
+                    else
+                    {
+                        result[i] = rhs.at(i);
+                    }
+                }
+            }
                 break;
         }
         return result;
