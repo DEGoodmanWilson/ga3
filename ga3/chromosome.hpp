@@ -33,6 +33,14 @@
 
 namespace ga3
 {
+
+enum class crossover_kind_t
+{
+    one_point,
+    two_point,
+    uniform
+};
+
 ///A class representing a chromosome i.e., a member of the population.
 /**
  * The chromosome class represents a single chromosome in a population.
@@ -47,16 +55,37 @@ public:
     ///Constructor that initializes the size of the chromosome. Probably more useful.
     chromosome() : fitness_{OPT_NS::nullopt}
     {
-        std::random_device rd;  //Will be used to obtain a seed for the random number engine
-        std::mt19937 gen(rd()); //Standard mersenne_twister_engine seeded with rd()
-
-// randomly initialize the genes
+        // randomly initialize the genes
         for (uint64_t n = 0; n < N; ++n)
         {
             std::uniform_int_distribution<uint64_t> dis(gene_bounds[n].first, gene_bounds[n].second);
-            genes_[n] = dis(gen);
+            genes_[n] = dis(gen_);
         }
     }
+
+
+    // subscript operator
+    gene &operator[](const uint64_t index)
+    {
+        return genes_[index];
+    }
+
+    gene at(const uint64_t index) const
+    {
+        return genes_.at(index);
+    }
+
+
+    // set up crossover kind
+
+
+    static crossover_kind_t crossover_kind_;
+
+    static void set_crossover(crossover_kind_t kind)
+    {
+        crossover_kind_ = kind;
+    }
+
 
 
 //    chromosome(const chromosome &p1, const chromosome &p2); //TODO crossover mechanism?
@@ -142,6 +171,43 @@ private:
 //    std::array<bool, N> slice_;
 
     OPT_NS::optional<double> fitness_;
+
+protected:
+    static std::random_device rd_;  //Will be used to obtain a seed for the random number engine
+    static std::mt19937 gen_;
+
+public:
+    chromosome<N> operator+(chromosome<N> const &rhs)
+    {
+        // what we do is going to depend on the crossover function that is set.
+        // TODO make kind_ protected and this function a friend!
+        chromosome<N> result;
+
+        switch (chromosome<N>::crossover_kind_)
+        {
+            case crossover_kind_t::one_point:
+            {
+                // TODO refactor this into a private function
+                std::uniform_int_distribution<uint64_t> dis(0, N - 1);
+                auto co_point = dis(chromosome<N>::gen_);
+                uint64_t i;
+                for (i = 0; i < co_point; ++i)
+                {
+                    result[i] = this->at(i);
+                }
+                for (; i < N; ++i)
+                {
+                    result[i] = rhs.at(i);
+                }
+            }
+                break;
+            case crossover_kind_t::two_point:
+                break;
+            case crossover_kind_t::uniform:
+                break;
+        }
+        return result;
+    }
 };
 
 template<size_t N>
@@ -151,5 +217,14 @@ typename chromosome<N>::evaluation_function_t chromosome<N>::evaluation_function
             return 0;
         }
 };
+
+template<size_t N>
+std::random_device chromosome<N>::rd_{};  //Will be used to obtain a seed for the random number engine
+template<size_t N>
+std::mt19937 chromosome<N>::gen_{rd_()};
+
+template<size_t N>
+crossover_kind_t chromosome<N>::crossover_kind_{crossover_kind_t::one_point};
+
 
 } // namespace ga3
