@@ -33,6 +33,14 @@ std::array<ga3::gene_range, 4> ga3::chromosome<4>::gene_bounds =
                  {6, 7},
          }};
 
+uint8_t call_count{0};
+template<>
+ga3::chromosome<4>::evaluation_function_t ga3::chromosome<4>::evaluation_function = [](std::array<ga3::gene, 4> &genes) -> double
+{
+    call_count++;
+    return 1;
+};
+
 SCENARIO("chromosomes")
 {
     GIVEN("a newly constructed chromosome")
@@ -146,6 +154,22 @@ SCENARIO("chromosomes")
                 REQUIRE(chromo[i] >= i*2);
                 REQUIRE(chromo[i] <= (i*2)+1);
             }
+        }
+    }
+
+    GIVEN("A trivial fitness function")
+    {
+        THEN("then the fitness should be calculated exactly once.")
+        {
+            ga3::chromosome<4> chromo;
+            call_count = 0;
+
+            auto fitness = chromo.evaluate();
+            fitness = chromo.evaluate();
+            fitness = chromo.evaluate();
+
+            REQUIRE(fitness == 1.0);
+            REQUIRE(call_count == 1);
         }
     }
 }

@@ -67,6 +67,7 @@ public:
     // subscript operator
     gene &operator[](const uint64_t index)
     {
+        fitness_ = OPT_NS::nullopt; // a gene may have changed. Invalidate the fitness
         return genes_[index];
     }
 
@@ -74,9 +75,6 @@ public:
     {
         return genes_.at(index);
     }
-
-
-    // set up crossover kind
 
 
     static crossover_kind_t crossover_kind_;
@@ -88,12 +86,20 @@ public:
 
 
     static std::array<gene_range, N> gene_bounds;
-    using evaluation_function_t = std::function<double(std::array<gene, N>)>;
+    using evaluation_function_t = std::function<double(std::array<gene, N> &)>;
     static evaluation_function_t evaluation_function;
+
+    double evaluate(void)
+    {
+        if (!fitness_)
+        {
+            fitness_ = evaluation_function(this->genes_);
+        }
+        return *fitness_;
+    }
 
 private:
     std::array<gene, N> genes_;
-//    std::array<bool, N> slice_;
 
     OPT_NS::optional<double> fitness_;
 
@@ -131,7 +137,7 @@ public:
                 // TODO refactor this into a private function
                 std::uniform_int_distribution<uint64_t> dis_1(0, N - 2);
                 auto co_point_1 = dis_1(chromosome<N>::gen_);
-                std::uniform_int_distribution<uint64_t> dis_2(co_point_1+1, N - 1);
+                std::uniform_int_distribution<uint64_t> dis_2(co_point_1 + 1, N - 1);
                 auto co_point_2 = dis_2(chromosome<N>::gen_);
                 uint64_t i;
                 for (i = 0; i < co_point_1; ++i)
@@ -153,10 +159,10 @@ public:
             {
                 // TODO refactor this into a private function
                 std::uniform_int_distribution<uint64_t> dis(0, 1);
-                for(uint64_t i=0; i < N; ++i)
+                for (uint64_t i = 0; i < N; ++i)
                 {
                     auto flip = dis(chromosome<N>::gen_);
-                    if(flip == 0)
+                    if (flip == 0)
                     {
                         result[i] = this->at(i);
                     }
@@ -174,7 +180,7 @@ public:
 
 template<size_t N>
 typename chromosome<N>::evaluation_function_t chromosome<N>::evaluation_function{
-        [](std::array<gene, N> genes) -> double
+        [](std::array<gene, N> &genes) -> double
         {
             return 0;
         }
