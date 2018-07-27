@@ -11,7 +11,7 @@ include_directories(SYSTEM PRIVATE .)
 
 set(SOURCE_FILES
         ga3/optional.h
-        ga3/gene.h
+        ga3/gene.hpp
         ga3/chromosome.hpp
 #        ga3/chromosome.cpp
 #        ga3/population.h

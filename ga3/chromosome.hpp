@@ -28,7 +28,7 @@
 #include <array>
 #include <functional>
 #include <random>
-#include <ga3/gene.h>
+#include <ga3/gene.hpp>
 #include <ga3/optional.h>
 
 namespace ga3

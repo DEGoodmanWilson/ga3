@@ -17,26 +17,12 @@
 //   O-----O   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //   o-----O
 //    o---O
-//     o-O     gene.h
-//      O      genes are ints, and bounds are pairs of genes (one for min, one for max).
+//     o-O     ga3.hpp
+//      O      an include file for including other include files
 //     O-o
 //////////////////////////////////////////////////////////////////////
 
-#pragma once
+#include <ga3/gene.hpp>
+#include <ga3/chromosome.hpp>
+#include <ga3/population.hpp>
 
-#include <tuple>
-
-namespace ga3
-{
-
-/**
- * A gene is represented with a 64 bit unsigned integer.
- */
-using gene = uint64_t;
-
-/**
- * A gene range, from min to max, is a pair of genes
- */
-using gene_range = std::pair<gene, gene>;
-
-}

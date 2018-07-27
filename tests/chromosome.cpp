@@ -3,42 +3,15 @@
 //
 
 #include <catch.hpp>
-#include <ga3/chromosome.hpp>
-
-// TODO this is fucking ugly. There has to be a better way
-static constexpr uint64_t min{1};
-static constexpr uint64_t max{10};
-static constexpr uint64_t size{10};
-template<>
-std::array<ga3::gene_range, size> ga3::chromosome<size>::gene_bounds =
-        {{
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-         }};
-
-template<>
-std::array<ga3::gene_range, 4> ga3::chromosome<4>::gene_bounds =
-        {{
-                 {0, 1},
-                 {2, 3},
-                 {4, 5},
-                 {6, 7},
-         }};
+#include "test.h"
 
 uint8_t call_count{0};
+
 template<>
 ga3::chromosome<4>::evaluation_function_t ga3::chromosome<4>::evaluation_function = [](std::array<ga3::gene, 4> &genes) -> double
 {
     call_count++;
-    return 1;
+    return 1.0;
 };
 
 SCENARIO("chromosomes")
