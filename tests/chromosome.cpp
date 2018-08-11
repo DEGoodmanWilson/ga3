@@ -5,10 +5,35 @@
 #include <catch.hpp>
 #include "test.h"
 
+static const uint64_t min{1};
+static const uint64_t max{3};
+static constexpr uint64_t size{10};
+
+static const std::vector<ga3::gene_range> gene_bounds_10 =
+        {{
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+                 {min, max},
+         }};
+
+static const std::vector<ga3::gene_range> gene_bounds_4 =
+        {{
+                 {0, 1},
+                 {2, 3},
+                 {4, 5},
+                 {6, 7},
+         }};
+
 uint8_t call_count{0};
 
-template<>
-ga3::chromosome<4>::evaluation_function_t ga3::chromosome<4>::evaluation_function = [](std::array<ga3::gene, 4> &genes) -> double
+ga3::chromosome::evaluation_function_t evaluation_function = [](std::vector<ga3::gene> &genes) -> double
 {
     call_count++;
     return 1.0;
@@ -20,7 +45,7 @@ SCENARIO("chromosomes")
     {
         THEN("it should be initialized with N random numbers in the appropriate range")
         {
-            ga3::chromosome<size> chromo;
+            ga3::chromosome chromo{gene_bounds_10};
             for (int i = 0; i < size; ++i)
             {
                 REQUIRE(chromo[i] >= min);
@@ -29,7 +54,7 @@ SCENARIO("chromosomes")
         }
         THEN("We ought to be able to set particular genes")
         {
-            ga3::chromosome<size> chromo;
+            ga3::chromosome chromo{gene_bounds_10};
             constexpr uint64_t value{2};
             for (int i = 0; i < size; ++i)
             {
@@ -45,7 +70,7 @@ SCENARIO("chromosomes")
     {
         THEN("we should be able to splice them with 1-point crossover")
         {
-            ga3::chromosome<size> chromo1, chromo2;
+            ga3::chromosome chromo1{gene_bounds_10}, chromo2{gene_bounds_10};
             constexpr uint64_t value1{1}, value2{2};
 
             for (int i = 0; i < size; ++i)
@@ -54,7 +79,7 @@ SCENARIO("chromosomes")
                 chromo2[i] = value2;
             }
 
-            ga3::chromosome<size>::set_crossover(ga3::crossover_kind_t::one_point);
+            ga3::chromosome::set_crossover(ga3::crossover_kind_t::one_point);
 
             auto new_chromo = chromo1 + chromo2;
 
@@ -65,7 +90,7 @@ SCENARIO("chromosomes")
 
         THEN("we should be able to splice them with 2-point crossover")
         {
-            ga3::chromosome<size> chromo1, chromo2;
+            ga3::chromosome chromo1{gene_bounds_10}, chromo2{gene_bounds_10};
             constexpr uint64_t value1{1}, value2{2};
 
             for (int i = 0; i < size; ++i)
@@ -74,19 +99,31 @@ SCENARIO("chromosomes")
                 chromo2[i] = value2;
             }
 
-            ga3::chromosome<size>::set_crossover(ga3::crossover_kind_t::two_point);
+            ga3::chromosome::set_crossover(ga3::crossover_kind_t::two_point);
 
             auto new_chromo = chromo1 + chromo2;
 
             // the result is stochastic. How to test?
-            REQUIRE(new_chromo[0] == value1);
-            REQUIRE(new_chromo[5] == value2);
-            REQUIRE(new_chromo[9] == value1);
+            // we can look for the crossover points.
+            int64_t co_point_1{-1}, co_point_2{-1};
+            for (int i = 0; i < size; ++i)// TODO allow iteration by iterator
+            {
+                if ((co_point_1 == -1) && (new_chromo[i] == value2))
+                {
+                    co_point_1 = i;
+                }
+                else if ((co_point_1 > -1) && (new_chromo[i] == value1))
+                {
+                    co_point_2 = i;
+                }
+            }
+            REQUIRE(co_point_1 > -1);
+            REQUIRE(co_point_2 > co_point_1);
         }
 
         THEN("we should be able to splice them with uniform crossover")
         {
-            ga3::chromosome<size> chromo1, chromo2;
+            ga3::chromosome chromo1{gene_bounds_10}, chromo2{gene_bounds_10};
             constexpr uint64_t value1{0}, value2{1};
 
             for (int i = 0; i < size; ++i)
@@ -95,21 +132,21 @@ SCENARIO("chromosomes")
                 chromo2[i] = value2;
             }
 
-            ga3::chromosome<size>::set_crossover(ga3::crossover_kind_t::uniform);
+            ga3::chromosome::set_crossover(ga3::crossover_kind_t::uniform);
 
             // this is stochastic. So, let's add chromos a ton of times, and look at the distributions for each gene
-            std::array<uint64_t, size> sum{0,0,0,0,0,0,0,0,0,0};
-            for(int i = 0; i < 10000; ++i)
+            std::array<uint64_t, size> sum{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            for (int i = 0; i < 10000; ++i)
             {
                 auto new_chromo = chromo1 + chromo2;
-                for(int i = 0; i < size; ++i)
+                for (int i = 0; i < size; ++i)
                 {
                     sum[i] += new_chromo[i];
                 }
             }
 
             // the result is stochastic. How to test?
-            for(int i = 0; i < size; ++i)
+            for (int i = 0; i < size; ++i)
             {
                 REQUIRE(sum[i] >= 4800);
                 REQUIRE(sum[i] <= 5200);
@@ -120,12 +157,12 @@ SCENARIO("chromosomes")
     {
         THEN("they should be respected during chromosome initialization")
         {
-            ga3::chromosome<4> chromo;
+            ga3::chromosome chromo{gene_bounds_4};
 
-            for(int i = 0; i < 4; ++i)
+            for (int i = 0; i < 4; ++i)
             {
-                REQUIRE(chromo[i] >= i*2);
-                REQUIRE(chromo[i] <= (i*2)+1);
+                REQUIRE(chromo[i] >= i * 2);
+                REQUIRE(chromo[i] <= (i * 2) + 1);
             }
         }
     }
@@ -134,7 +171,7 @@ SCENARIO("chromosomes")
     {
         THEN("then the fitness should be calculated exactly once.")
         {
-            ga3::chromosome<4> chromo;
+            ga3::chromosome chromo{gene_bounds_4, evaluation_function};
             call_count = 0;
 
             auto fitness = chromo.evaluate();

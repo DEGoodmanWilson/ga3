@@ -17,7 +17,7 @@
 //   O-----O   Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 //   o-----O
 //    o---O
-//     o-O     chromosome.h
+//     o-O     chromosome.hpp
 //      O      interface for the ga3::chromosome class.
 //     O-o
 //////////////////////////////////////////////////////////////////////
@@ -25,9 +25,9 @@
 #pragma once
 
 #include <iostream>
-#include <array>
 #include <functional>
 #include <random>
+#include <vector>
 #include <ga3/gene.hpp>
 #include <ga3/optional.h>
 
@@ -48,151 +48,47 @@ enum class crossover_kind_t
  * back together. A population contains a number of chromosomes.
  */
 
-template<size_t N>
+
 class chromosome
 {
 public:
+    using evaluation_function_t = std::function<double(std::vector<gene> &)>;
+
     ///Constructor that initializes the size of the chromosome. Probably more useful.
-    chromosome() : fitness_{OPT_NS::nullopt}
-    {
-        // randomly initialize the genes
-        for (uint64_t n = 0; n < N; ++n)
-        {
-            std::uniform_int_distribution<uint64_t> dis(gene_bounds[n].first, gene_bounds[n].second);
-            genes_[n] = dis(gen_);
-        }
-    }
+    chromosome(const std::vector<gene_range> bounds,
+               evaluation_function_t evaluation_function = [](std::vector<gene> &genes) -> double
+               {
+                   return 0;
+               });
+
+    chromosome(const chromosome &rhs) = default;
+
+    chromosome(chromosome &&rhs) = default;
 
 
     // subscript operator
-    gene &operator[](const uint64_t index)
-    {
-        fitness_ = OPT_NS::nullopt; // a gene may have changed. Invalidate the fitness
-        return genes_[index];
-    }
+    gene &operator[](const uint64_t index);
 
-    gene at(const uint64_t index) const
-    {
-        return genes_.at(index);
-    }
+    gene at(const uint64_t index) const;
 
+    chromosome operator+(chromosome const &rhs);
 
     static crossover_kind_t crossover_kind_;
 
-    static void set_crossover(crossover_kind_t kind)
-    {
-        crossover_kind_ = kind;
-    }
+    static void set_crossover(crossover_kind_t kind);
 
-
-    static std::array<gene_range, N> gene_bounds;
-    using evaluation_function_t = std::function<double(std::array<gene, N> &)>;
-    static evaluation_function_t evaluation_function;
-
-    double evaluate(void)
-    {
-        if (!fitness_)
-        {
-            fitness_ = evaluation_function(this->genes_);
-        }
-        return *fitness_;
-    }
+    double evaluate(void);
 
 private:
-    std::array<gene, N> genes_;
+    std::vector<gene> genes_;
+    std::vector<gene_range> gene_bounds_;
+    evaluation_function_t evaluation_function_;
 
     OPT_NS::optional<double> fitness_;
 
-protected:
     static std::random_device rd_;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen_;
-
-public:
-    chromosome<N> operator+(chromosome<N> const &rhs)
-    {
-        // what we do is going to depend on the crossover function that is set.
-        // TODO make kind_ protected and this function a friend!
-        chromosome<N> result;
-
-        switch (chromosome<N>::crossover_kind_)
-        {
-            case crossover_kind_t::one_point:
-            {
-                // TODO refactor this into a private function
-                std::uniform_int_distribution<uint64_t> dis(0, N - 1);
-                auto co_point = dis(chromosome<N>::gen_);
-                uint64_t i;
-                for (i = 0; i < co_point; ++i)
-                {
-                    result[i] = this->at(i);
-                }
-                for (; i < N; ++i)
-                {
-                    result[i] = rhs.at(i);
-                }
-            }
-                break;
-            case crossover_kind_t::two_point:
-            {
-                // TODO refactor this into a private function
-                std::uniform_int_distribution<uint64_t> dis_1(0, N - 2);
-                auto co_point_1 = dis_1(chromosome<N>::gen_);
-                std::uniform_int_distribution<uint64_t> dis_2(co_point_1 + 1, N - 1);
-                auto co_point_2 = dis_2(chromosome<N>::gen_);
-                uint64_t i;
-                for (i = 0; i < co_point_1; ++i)
-                {
-                    result[i] = this->at(i);
-                }
-                for (; i < co_point_2; ++i)
-                {
-                    result[i] = rhs.at(i);
-
-                }
-                for (; i < N; ++i)
-                {
-                    result[i] = this->at(i);
-                }
-            }
-                break;
-            case crossover_kind_t::uniform:
-            {
-                // TODO refactor this into a private function
-                std::uniform_int_distribution<uint64_t> dis(0, 1);
-                for (uint64_t i = 0; i < N; ++i)
-                {
-                    auto flip = dis(chromosome<N>::gen_);
-                    if (flip == 0)
-                    {
-                        result[i] = this->at(i);
-                    }
-                    else
-                    {
-                        result[i] = rhs.at(i);
-                    }
-                }
-            }
-                break;
-        }
-        return result;
-    }
 };
-
-template<size_t N>
-typename chromosome<N>::evaluation_function_t chromosome<N>::evaluation_function{
-        [](std::array<gene, N> &genes) -> double
-        {
-            return 0;
-        }
-};
-
-template<size_t N>
-std::random_device chromosome<N>::rd_{};  //Will be used to obtain a seed for the random number engine
-template<size_t N>
-std::mt19937 chromosome<N>::gen_{rd_()};
-
-template<size_t N>
-crossover_kind_t chromosome<N>::crossover_kind_{crossover_kind_t::one_point};
 
 
 } // namespace ga3

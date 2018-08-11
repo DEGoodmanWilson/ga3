@@ -31,6 +31,7 @@ namespace ga3
 
 /**
  * A gene is represented with a 64 bit unsigned integer.
+ * TODO WHAT IF WE WANT A FLOAT!? leave this for v2.
  */
 using gene = uint64_t;
 

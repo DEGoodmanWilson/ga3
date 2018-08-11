@@ -13,10 +13,10 @@ set(SOURCE_FILES
         ga3/optional.h
         ga3/gene.hpp
         ga3/chromosome.hpp
-#        ga3/chromosome.cpp
+        ga3/chromosome.cpp
 #        ga3/population.h
 #        ga3/population.cpp
-#        ga3/ga2.h
+        ga3/ga3.hpp
         )
 
 set(THREADPOOL_SOURCE_FILES
@@ -24,8 +24,8 @@ set(THREADPOOL_SOURCE_FILES
         ThreadPool/ThreadPool.h
         )
 
-#add_library(${PROJECT_NAME} ${SOURCE_FILES} ${THREADPOOL_SOURCE_FILES})
-#target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
+add_library(${PROJECT_NAME} ${SOURCE_FILES} ${THREADPOOL_SOURCE_FILES})
+target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
 
 # Tests
 #if (BUILD_LUNA_TESTS)
