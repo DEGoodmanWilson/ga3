@@ -14,8 +14,8 @@ set(SOURCE_FILES
         ga3/gene.hpp
         ga3/chromosome.hpp
         ga3/chromosome.cpp
-#        ga3/population.h
-#        ga3/population.cpp
+        ga3/population.hpp
+        ga3/population.cpp
         ga3/ga3.hpp
         )
 

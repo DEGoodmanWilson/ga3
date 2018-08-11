@@ -37,6 +37,7 @@ chromosome::chromosome(const std::vector<gene_range> bounds,
         gene_bounds_{bounds},
         fitness_{OPT_NS::nullopt},
         evaluation_function_{evaluation_function}
+// TODO pre-set population capacity
 {
     // randomly initialize the genes
     // TODO this should be done in the gene constructor?
