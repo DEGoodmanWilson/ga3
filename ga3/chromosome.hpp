@@ -52,9 +52,9 @@ public:
                evaluation_function_t evaluation_function);
 
     // subscript operator
-    gene &operator[](const uint64_t index);
+    gene &operator[](const size_t index);
 
-    gene at(const uint64_t index) const;
+    gene at(const size_t index) const;
 
     void mutate(void);
 
@@ -72,7 +72,6 @@ public:
     static void set_crossover(crossover_kind_t kind);
 
     double evaluate(void);
-    bool is_evaluated(void) const;
     double get_fitness(void) const;
 
 private:

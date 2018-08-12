@@ -49,13 +49,13 @@ chromosome::chromosome(const std::vector<gene_range> bounds,
     }
 }
 
-gene &chromosome::operator[](const uint64_t index)
+gene &chromosome::operator[](const size_t index)
 {
     fitness_ = OPT_NS::nullopt; // a gene may have changed. Invalidate the fitness
     return genes_[index];
 }
 
-gene chromosome::at(const uint64_t index) const
+gene chromosome::at(const size_t index) const
 {
     return genes_.at(index);
 }
@@ -92,11 +92,6 @@ double chromosome::evaluate(void)
         }
     }
     return *fitness_;
-}
-
-bool chromosome::is_evaluated() const
-{
-    return !!fitness_;
 }
 
 double chromosome::get_fitness(void) const
