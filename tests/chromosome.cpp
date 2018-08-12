@@ -31,9 +31,17 @@ static const std::vector<ga3::gene_range> gene_bounds_4 =
                  {6, 7},
          }};
 
-uint8_t call_count{0};
+static ga3::chromosome::evaluation_function_t default_fitness_function
+        {
+                [](std::vector<ga3::gene> &genes) -> double
+                {
+                    return 0;
+                }
+        };
 
-ga3::chromosome::evaluation_function_t evaluation_function = [](std::vector<ga3::gene> &genes) -> double
+static uint8_t call_count{0};
+
+static ga3::chromosome::evaluation_function_t evaluation_function = [](std::vector<ga3::gene> &genes) -> double
 {
     call_count++;
     return 1.0;
@@ -45,7 +53,7 @@ SCENARIO("chromosomes")
     {
         THEN("it should be initialized with N random numbers in the appropriate range")
         {
-            ga3::chromosome chromo{gene_bounds_10};
+            ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
             for (int i = 0; i < size; ++i)
             {
                 REQUIRE(chromo[i] >= min);
@@ -54,7 +62,7 @@ SCENARIO("chromosomes")
         }
         THEN("We ought to be able to set particular genes")
         {
-            ga3::chromosome chromo{gene_bounds_10};
+            ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
             constexpr uint64_t value{2};
             for (int i = 0; i < size; ++i)
             {
@@ -70,7 +78,7 @@ SCENARIO("chromosomes")
     {
         THEN("we should be able to splice them with 1-point crossover")
         {
-            ga3::chromosome chromo1{gene_bounds_10}, chromo2{gene_bounds_10};
+            ga3::chromosome chromo1{gene_bounds_10, default_fitness_function}, chromo2{gene_bounds_10, default_fitness_function};
             constexpr uint64_t value1{1}, value2{2};
 
             for (int i = 0; i < size; ++i)
@@ -90,7 +98,7 @@ SCENARIO("chromosomes")
 
         THEN("we should be able to splice them with 2-point crossover")
         {
-            ga3::chromosome chromo1{gene_bounds_10}, chromo2{gene_bounds_10};
+            ga3::chromosome chromo1{gene_bounds_10, default_fitness_function}, chromo2{gene_bounds_10, default_fitness_function};
             constexpr uint64_t value1{1}, value2{2};
 
             for (int i = 0; i < size; ++i)
@@ -123,7 +131,7 @@ SCENARIO("chromosomes")
 
         THEN("we should be able to splice them with uniform crossover")
         {
-            ga3::chromosome chromo1{gene_bounds_10}, chromo2{gene_bounds_10};
+            ga3::chromosome chromo1{gene_bounds_10, default_fitness_function}, chromo2{gene_bounds_10, default_fitness_function};
             constexpr uint64_t value1{0}, value2{1};
 
             for (int i = 0; i < size; ++i)
@@ -157,7 +165,7 @@ SCENARIO("chromosomes")
     {
         THEN("they should be respected during chromosome initialization")
         {
-            ga3::chromosome chromo{gene_bounds_4};
+            ga3::chromosome chromo{gene_bounds_4, default_fitness_function};
 
             for (int i = 0; i < 4; ++i)
             {

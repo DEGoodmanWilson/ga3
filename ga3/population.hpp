@@ -50,18 +50,20 @@ public:
     ///The constructor.
     population(uint64_t population_size,
                std::vector<gene_range> gene_bounds,
-               chromosome::evaluation_function_t evaluation_function = [](std::vector<gene> &genes) -> double
-               {
-                   return 0;
-               },
+               chromosome::evaluation_function_t evaluation_function,
                uint32_t num_threads = std::thread::hardware_concurrency() - 1);
 
     chromosome &operator[](const uint64_t index);
     chromosome at(const uint64_t index);
 
+    chromosome best_fit();
+
 private:
     std::vector<chromosome> population_;
     uint32_t num_threads_;
+    OPT_NS::optional<chromosome> most_fit_member_;
+    uint64_t task_size_;
+    ThreadPool::ThreadPool thread_pool_;
 };
 
 } //namespace ga3

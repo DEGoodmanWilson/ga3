@@ -127,5 +127,22 @@ chromosome chromosome::operator+(chromosome const &rhs)
     return result;
 }
 
+bool chromosome::operator<(const ga3::chromosome &rhs) const
+{
+    // TODO throw something if fitness_ is false!
+    if(!this->fitness_ || !rhs.fitness_)
+        throw std::invalid_argument("One or more chromosomes have not been evaluated!");
+
+    return *(this->fitness_) < *(rhs.fitness_);
+}
+
+bool chromosome::operator>(const ga3::chromosome &rhs) const
+{
+    // TODO throw something if fitness_ is false!
+    if(!this->fitness_ || !rhs.fitness_)
+        throw std::invalid_argument("One or more chromosomes have not been evaluated!");
+
+    return *(this->fitness_) > *(rhs.fitness_);
+}
 
 }

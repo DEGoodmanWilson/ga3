@@ -56,15 +56,7 @@ public:
 
     ///Constructor that initializes the size of the chromosome. Probably more useful.
     chromosome(const std::vector<gene_range> bounds,
-               evaluation_function_t evaluation_function = [](std::vector<gene> &genes) -> double
-               {
-                   return 0;
-               });
-
-    chromosome(const chromosome &rhs) = default;
-
-    chromosome(chromosome &&rhs) = default;
-
+               evaluation_function_t evaluation_function);
 
     // subscript operator
     gene &operator[](const uint64_t index);
@@ -72,6 +64,9 @@ public:
     gene at(const uint64_t index) const;
 
     chromosome operator+(chromosome const &rhs);
+
+    bool operator<(const chromosome &rhs) const;
+    bool operator>(const chromosome &rhs) const;
 
     static crossover_kind_t crossover_kind_;
 
