@@ -78,7 +78,7 @@ SCENARIO("populations")
         {
             threads = peak_threads = 0;
             ga3::population pop{pop_size, gene_bounds_10, counter, 0};
-            const auto start_fitness = pop.best_fit().evaluate();
+            const auto start_fitness = pop.evaluate().evaluate();
 
             REQUIRE(start_fitness == 10);
             REQUIRE(peak_threads == 1);
@@ -90,7 +90,7 @@ SCENARIO("populations")
             peak_threads = 0;
 
             ga3::population pop{pop_size, gene_bounds_10, counter};
-            const auto start_fitness = pop.best_fit().evaluate();
+            const auto start_fitness = pop.evaluate().evaluate();
 
             REQUIRE(start_fitness == 10);
             REQUIRE(peak_threads > 1);
@@ -101,12 +101,12 @@ SCENARIO("populations")
             ga3::population::set_selection(ga3::population::selection_kind_t::roulette);
             ga3::population::set_replacement(ga3::population::replacement_kind_t::generational);
             ga3::population pop{5, gene_bounds_10, counter};
-            const auto start_fitness = pop.best_fit().evaluate();
+            const auto start_fitness = pop.evaluate().evaluate();
 
             pop.evolve(10); //10 generations
-            const auto end_fitness = pop.best_fit().evaluate();
+            const auto end_fitness = pop.evaluate().evaluate();
 
-            REQUIRE(end_fitness > start_fitness);
+            REQUIRE(end_fitness < start_fitness);
             // TODO how to test that generational replacement is working?
         }
     }

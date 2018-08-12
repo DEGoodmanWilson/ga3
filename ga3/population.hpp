@@ -69,13 +69,13 @@ public:
     };
     static void set_replacement(replacement_kind_t kind);
 
-    chromosome best_fit();
+    chromosome evaluate();
     void evolve(uint64_t generations);
 
 private:
     std::vector<chromosome> population_;
     uint32_t num_threads_;
-    OPT_NS::optional<chromosome> most_fit_member_;
+    size_t most_fit_member_;
     uint64_t task_size_;
     ThreadPool::ThreadPool thread_pool_;
     static selection_kind_t selection_kind_;

@@ -70,6 +70,7 @@ public:
     static void set_crossover(crossover_kind_t kind);
 
     double evaluate(void);
+    bool is_evaluated(void) const;
     double get_fitness(void) const;
 
 private:

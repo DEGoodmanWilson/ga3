@@ -41,7 +41,7 @@ population::population(uint64_t population_size,
                        uint32_t num_threads)
         :
         num_threads_{num_threads},
-        most_fit_member_{OPT_NS::nullopt},
+        most_fit_member_{0},
         task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
         thread_pool_{num_threads_}
 
@@ -57,7 +57,7 @@ population::population(uint64_t population_size,
 
 chromosome &population::operator[](const uint64_t index)
 {
-    most_fit_member_ = OPT_NS::nullopt; // we may be overwriting a chromo. Invalidate the marker that fitnesses have been measured.
+    most_fit_member_ = index; // we may be overwriting a chromo. Invalidate the marker that fitnesses have been measured.
     return population_[index];
 }
 
@@ -70,10 +70,10 @@ chromosome population::at(const uint64_t index)
 // move all of this into the initialization. The current generation must always be evaluated and sorted.
 
 
-chromosome population::best_fit()
+chromosome population::evaluate()
 {
     // First, check if we've already done everything below
-    if (!most_fit_member_)
+    if (!population_.at(most_fit_member_).is_evaluated())
     {
         // Else, 1) evaluate each chromosome, 2) sort the population 3) return the highest fit chromo
 
@@ -112,8 +112,8 @@ chromosome population::best_fit()
         std::sort(population_.begin(), population_.end(), std::greater<chromosome>());
 
     }
-    most_fit_member_ = population_[0];
-    return *most_fit_member_;
+    most_fit_member_ = 0; //because it is sorted. TODO change this
+    return population_.at(most_fit_member_);
 }
 
 void population::set_selection(ga3::population::selection_kind_t kind)
@@ -134,31 +134,31 @@ size_t population::select_()
     {
         case selection_kind_t::roulette:
         {
-            // TODO we shouldn't have to rely on this being sorted to work
-            double min_fitness = population_.rbegin()->evaluate(); //already sorted so this works
-
             // calculate the total fitness of the population
-            double sum_fitness = std::accumulate(population_.begin(), population_.end(), 0.0, [](double a, const chromosome &b)
-            {
-                return a + b.get_fitness();
-            });
+            double sum_fitness = std::accumulate(population_.begin(),
+                                                 population_.end(),
+                                                 0.0,
+                                                 [](double a, const chromosome &b)
+                                                 {
+                                                     return a + b.get_fitness();
+                                                 });
 
 
             //spin that wheel!
-                    // The values on the wheel range from 0 to sum_fitness
+            // The values on the wheel range from 0 to sum_fitness
             std::uniform_real_distribution<double> dis(0, sum_fitness);
             auto wheel_position = dis(private_::gen_);
 
             // now we need to determine _which_ chromosome this wheel position corresponds to!
 
-            size_t i{0};
+            size_t i{std::numeric_limits<size_t>::max()};
             double partial_sum{0.0};
-            while( (partial_sum < wheel_position) && (i < population_.size()))
-            {
+            do {
+                ++i;
                 auto f = population_[i].get_fitness();
                 partial_sum += f;
-                ++i;
-            }
+            } while ((partial_sum < wheel_position) && (i != population_.size() - 1));
+
 
             return i;
         }
@@ -169,16 +169,33 @@ size_t population::select_()
 
 void population::evolve(uint64_t generations)
 {
+    evaluate();
+
     for (uint64_t i = 0; i < generations; ++i)
     {
         //TODO break these out into individual functions
         switch (population::replacement_kind_)
         {
             case replacement_kind_t::generational:
+            {
+                decltype(population_) next_generation;
+                for (size_t i = 0; i < population_.size(); ++i)
+                {
+                    auto a = select_();
+                    auto b = select_();
+                    auto chromo_a = population_.at(a);
+                    auto chromo_b = population_.at(b);
+                    next_generation.emplace_back(chromo_a + chromo_b);
+                }
+                // and just full-on replace it. Do it.
+                population_ = next_generation;
+            }
                 break;
             case replacement_kind_t::steady_state:
                 break;
         }
+
+        evaluate();
     }
 }
 

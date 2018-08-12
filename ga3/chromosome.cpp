@@ -78,6 +78,11 @@ double chromosome::evaluate(void)
     return *fitness_;
 }
 
+bool chromosome::is_evaluated() const
+{
+    return !!fitness_;
+}
+
 double chromosome::get_fitness(void) const
 {
     if (!fitness_)
