@@ -22,7 +22,7 @@ set(SOURCE_FILES
 set(THREADPOOL_SOURCE_FILES
         ThreadPool/ThreadSafeQueue.h
         ThreadPool/ThreadPool.h
-        )
+        ga3/types.hpp)
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES} ${THREADPOOL_SOURCE_FILES})
 target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})

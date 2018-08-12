@@ -32,20 +32,11 @@ static std::random_device rd_{};  //Will be used to obtain a seed for the random
 static std::mt19937 gen_{rd_()};
 }
 
-population::population(uint64_t population_size,
-                       std::vector<gene_range> gene_bounds,
-                       chromosome::evaluation_function_t evaluation_function,
-                       uint32_t num_threads)
-        :
-        num_threads_{num_threads},
-        most_fit_member_{0},
-        task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
-        thread_pool_{num_threads_},
-        selection_kind_{selection_kind_t::roulette},
-        replacement_kind_{replacement_kind_t::generational},
-        mutation_rate_{0.0}
+// uint32_t num_threads = std::thread::hardware_concurrency() - 1
 
-// TODO pre-set population capacity
+void population::initialize_(uint64_t population_size,
+                             std::vector<gene_range> &&gene_bounds,
+                             chromosome::evaluation_function_t &&evaluation_function)
 {
     population_.reserve(population_size);
     for (auto p = 0; p < population_size; ++p)
@@ -54,6 +45,20 @@ population::population(uint64_t population_size,
     }
 }
 
+void population::set_option_(ga3::population::selection_kind_t value)
+{
+    selection_kind_ = value;
+}
+
+void population::set_option_(ga3::population::replacement_kind_t value)
+{
+    replacement_kind_ = value;
+}
+
+void population::set_option_(ga3::population::mutation_rate value)
+{
+    mutation_rate_ = value;
+}
 
 chromosome &population::operator[](const uint64_t index)
 {
@@ -72,58 +77,46 @@ chromosome population::at(const uint64_t index)
 
 chromosome population::evaluate()
 {
-    // First, check if we've already done everything below
-    if (!population_.at(most_fit_member_).is_evaluated())
+    // TODO check to see if we _have_ to evaluate, or if everything is already evaluated.
+    // Not sure the best way to do this, but essentially we need to invalidate the evaluation every time the vector is updated.
+
+    // 1) evaluate each chromosome, 2) sort the population 3) return the highest fit chromo
+
+    std::vector<ThreadPool::ThreadPool::TaskFuture<void>> futures;
+    auto start{0};
+
+    for (auto t = 0; t < num_threads_; ++t)
     {
-        // Else, 1) evaluate each chromosome, 2) sort the population 3) return the highest fit chromo
-
-        std::vector<ThreadPool::ThreadPool::TaskFuture<void>> futures;
-//        ThreadPool::ThreadSafeQueue<chromosome> chromos;
-        auto start{0};
-
-        for (auto t = 0; t < num_threads_; ++t)
-        {
-            futures.emplace_back(thread_pool_.submit([&, start = start]() -> auto
+        futures.emplace_back(thread_pool_.submit([&, start = start]() -> auto
+                                                 {
+                                                     for (auto i = start; i < start + task_size_; ++i)
                                                      {
-                                                         for (auto i = start; i < start + task_size_; ++i)
-                                                         {
-                                                             population_[i].evaluate();
-                                                         }
-                                                     }));
+                                                         population_[i].evaluate();
+                                                     }
+                                                 }));
 
-            start += task_size_;
-        }
-
-        //do the remainder of the work in this thread;
-        for (auto i = start; i < population_.size(); ++i)
-        {
-            population_[i].evaluate();
-        }
-
-        // now we need to wait for all the tasks to complete; this is not super efficient, but what are you gonna do?
-        for (auto &future : futures)
-        {
-            future.get();
-        }
-
-        // put all the chromos processed into _chromosomes
-        // NOTICE THIS IS REALLY ONLY NEEDED FOR RANKED SELECTION
-        // TODO make this more sophisitcated to not have to sort if we aren't using ranked selection
-        std::sort(population_.begin(), population_.end(), std::greater<chromosome>());
-
+        start += task_size_;
     }
+
+    //do the remainder of the work in this thread;
+    for (auto i = start; i < population_.size(); ++i)
+    {
+        population_[i].evaluate();
+    }
+
+    // now we need to wait for all the tasks to complete; this is not super efficient, but what are you gonna do?
+    for (auto &future : futures)
+    {
+        future.get();
+    }
+
+    // put all the chromos processed into _chromosomes
+    // NOTICE THIS IS REALLY ONLY NEEDED FOR RANKED SELECTION
+    // TODO make this more sophisitcated to not have to sort if we aren't using ranked selection
+    std::sort(population_.begin(), population_.end(), std::greater<chromosome>());
+
     most_fit_member_ = 0; //because it is sorted. TODO change this
     return population_.at(most_fit_member_);
-}
-
-void population::set_selection(ga3::population::selection_kind_t kind)
-{
-    population::selection_kind_ = kind;
-}
-
-void population::set_replacement(ga3::population::replacement_kind_t kind)
-{
-    population::replacement_kind_ = kind;
 }
 
 size_t population::select_()
@@ -183,11 +176,11 @@ void population::evolve(uint64_t generations)
             auto chromo_b = population_.at(b);
             auto new_chromo = chromo_a + chromo_b;
 
-            if(mutation_rate_ > 0.0)
+            if (mutation_rate_ > 0.0)
             {
                 // mutate it!
                 std::uniform_real_distribution<double> dis(0.0, 1.0);
-                if(dis(private_::gen_) <= mutation_rate_)
+                if (dis(private_::gen_) <= mutation_rate_)
                 {
                     new_chromo.mutate();
                 }

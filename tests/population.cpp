@@ -90,16 +90,6 @@ SCENARIO("populations")
             }
         }
 
-        THEN("it should be able to tell us the most fit chromosome without threading")
-        {
-            threads = peak_threads = 0;
-            ga3::population pop{pop_size, gene_bounds_10, counter, 0};
-            const auto start_fitness = pop.evaluate().evaluate();
-
-            REQUIRE(start_fitness == 10);
-            REQUIRE(peak_threads == 1);
-        }
-
         THEN("it should be able to tell us the most fit chromosome with threading")
         {
             threads = 0;
@@ -109,14 +99,13 @@ SCENARIO("populations")
             const auto start_fitness = pop.evaluate().evaluate();
 
             REQUIRE(start_fitness == 10);
-            REQUIRE(peak_threads > 1);
+            REQUIRE(peak_threads > 2);
         }
 
         THEN("it should be able to converge on a solution using roulette selection and generational replacement")
         {
-            ga3::population pop{100, gene_bounds_10_wide, counter};
-            pop.set_selection(ga3::population::selection_kind_t::roulette);
-            pop.set_replacement(ga3::population::replacement_kind_t::generational);
+            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::roulette, ga3::population::replacement_kind_t::generational};
+
             const auto start_fitness = pop.evaluate().evaluate();
 
             pop.evolve(100); //10 generations
@@ -128,9 +117,8 @@ SCENARIO("populations")
 
         THEN("it should be able to converge on a solution using roulette selection and steady-state replacement")
         {
-            ga3::population pop{100, gene_bounds_10_wide, counter};
-            pop.set_selection(ga3::population::selection_kind_t::roulette);
-            pop.set_replacement(ga3::population::replacement_kind_t::steady_state);
+            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::roulette, ga3::population::replacement_kind_t::steady_state};
+
             const auto start_fitness = pop.evaluate().evaluate();
 
             pop.evolve(100); //10 generations

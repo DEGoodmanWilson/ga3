@@ -24,6 +24,7 @@
 
 #pragma once
 
+#include <ga3/types.hpp>
 #include <iostream>
 #include <vector>
 #include <functional>
@@ -48,31 +49,70 @@ class population
 {
 public:
     ///The constructor.
+
+    population(uint64_t population_size,
+               std::vector<gene_range> gene_bounds,
+               chromosome::evaluation_function_t evaluation_function) :
+            num_threads_{std::thread::hardware_concurrency() - 1},
+            most_fit_member_{0},
+            task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
+            thread_pool_{num_threads_},
+            selection_kind_{selection_kind_t::roulette},
+            replacement_kind_{replacement_kind_t::generational},
+            mutation_rate_{0.0},
+            population_size_{population_size}
+    {
+        initialize_(population_size, std::move(gene_bounds), std::move(evaluation_function));
+    }
+
+    template<typename ...Os>
     population(uint64_t population_size,
                std::vector<gene_range> gene_bounds,
                chromosome::evaluation_function_t evaluation_function,
-               uint32_t num_threads = std::thread::hardware_concurrency() - 1);
+               Os &&...os) :
+            num_threads_{std::thread::hardware_concurrency() - 1},
+            most_fit_member_{0},
+            task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
+            thread_pool_{num_threads_},
+            selection_kind_{selection_kind_t::roulette},
+            replacement_kind_{replacement_kind_t::generational},
+            mutation_rate_{0.0},
+            population_size_{population_size}
+    {
+        initialize_(population_size, std::move(gene_bounds), std::move(evaluation_function));
+        set_options_(GA3_FWD(os)...);
+    }
 
-    chromosome &operator[](const uint64_t index);
-    chromosome at(const uint64_t index);
 
     enum class selection_kind_t
     {
         roulette,
         ranked
     };
-    void set_selection(selection_kind_t kind);
     enum class replacement_kind_t
     {
         steady_state,
         generational
     };
-    void set_replacement(replacement_kind_t kind);
 
-    void set_mutation_rate(double rate); //TODO can we move these configurators into the constructor?
+    // helpful operators
+
+    chromosome &operator[](const uint64_t index);
+
+    chromosome at(const uint64_t index);
+
+
+    // The meat
 
     chromosome evaluate();
+
     void evolve(uint64_t generations);
+
+
+    // configuration types
+    MAKE_NUMERIC_LIKE(size_t, number_of_threads);
+
+    MAKE_NUMERIC_LIKE(double, mutation_rate);
 
 private:
     std::vector<chromosome> population_;
@@ -83,8 +123,34 @@ private:
     selection_kind_t selection_kind_;
     replacement_kind_t replacement_kind_;
     double mutation_rate_;
+    size_t population_size_;
 
-    size_t select_();
+    size_t select_(void);
+
+
+    void initialize_(uint64_t population_size,
+                     std::vector<gene_range> &&gene_bounds,
+                     chromosome::evaluation_function_t &&evaluation_function);
+
+    template<typename T>
+    void set_options_(T &&t)
+    {
+        set_option_(GA3_FWD(t));
+    }
+
+    template<typename T, typename... Ts>
+    void set_options_(T &&t, Ts &&... ts)
+    {
+        set_options_(GA3_FWD(t));
+        set_options_(GA3_FWD(ts)...);
+    }
+
+    void set_option_(selection_kind_t value);
+
+    void set_option_(replacement_kind_t value);
+
+    void set_option_(mutation_rate value); // mutation rate
+
 };
 
 } //namespace ga3
