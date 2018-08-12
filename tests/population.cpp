@@ -7,22 +7,38 @@
 #include <algorithm>
 #include <atomic>
 
-static const uint64_t min{0};
-static const uint64_t max{1};
+static const uint64_t min_0{0};
+static const uint64_t max_1{1};
+static const uint64_t max_10{10};
+
 static constexpr uint64_t size_ten{10};
 static constexpr uint64_t pop_size{10000};
 static const std::vector<ga3::gene_range> gene_bounds_10 =
         {{
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
-                 {min, max},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+                 {min_0, max_1},
+         }};
+
+static const std::vector<ga3::gene_range> gene_bounds_10_wide =
+        {{
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
+                 {min_0, max_10},
          }};
 
 static ga3::chromosome::evaluation_function_t default_fitness_function
@@ -100,13 +116,27 @@ SCENARIO("populations")
         {
             ga3::population::set_selection(ga3::population::selection_kind_t::roulette);
             ga3::population::set_replacement(ga3::population::replacement_kind_t::generational);
-            ga3::population pop{5, gene_bounds_10, counter};
+            ga3::population pop{100, gene_bounds_10_wide, counter};
             const auto start_fitness = pop.evaluate().evaluate();
 
-            pop.evolve(10); //10 generations
+            pop.evolve(100); //10 generations
             const auto end_fitness = pop.evaluate().evaluate();
 
-            REQUIRE(end_fitness < start_fitness);
+            REQUIRE(end_fitness > start_fitness);
+            // TODO how to test that generational replacement is working?
+        }
+
+        THEN("it should be able to converge on a solution using roulette selection and steady-state replacement")
+        {
+            ga3::population::set_selection(ga3::population::selection_kind_t::roulette);
+            ga3::population::set_replacement(ga3::population::replacement_kind_t::steady_state);
+            ga3::population pop{100, gene_bounds_10_wide, counter};
+            const auto start_fitness = pop.evaluate().evaluate();
+
+            pop.evolve(100); //10 generations
+            const auto end_fitness = pop.evaluate().evaluate();
+
+            REQUIRE(end_fitness > start_fitness);
             // TODO how to test that generational replacement is working?
         }
     }

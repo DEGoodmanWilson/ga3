@@ -47,7 +47,7 @@ population::population(uint64_t population_size,
 
 // TODO pre-set population capacity
 {
-    // TODO without pre-sizing the population this is gonna be _slow_. Is there a better way?
+    population_.reserve(population_size);
     for (auto p = 0; p < population_size; ++p)
     {
         population_.emplace_back(gene_bounds, evaluation_function);
@@ -153,7 +153,8 @@ size_t population::select_()
 
             size_t i{std::numeric_limits<size_t>::max()};
             double partial_sum{0.0};
-            do {
+            do
+            {
                 ++i;
                 auto f = population_[i].get_fitness();
                 partial_sum += f;
@@ -173,29 +174,39 @@ void population::evolve(uint64_t generations)
 
     for (uint64_t i = 0; i < generations; ++i)
     {
+        decltype(population_) next_generation;
+        for (size_t i = 0; i < population_.size(); ++i)
+        {
+            auto a = select_();
+            auto b = select_();
+            auto chromo_a = population_.at(a);
+            auto chromo_b = population_.at(b);
+            next_generation.emplace_back(chromo_a + chromo_b);
+        }
+
         //TODO break these out into individual functions
         switch (population::replacement_kind_)
         {
             case replacement_kind_t::generational:
-            {
-                decltype(population_) next_generation;
-                for (size_t i = 0; i < population_.size(); ++i)
-                {
-                    auto a = select_();
-                    auto b = select_();
-                    auto chromo_a = population_.at(a);
-                    auto chromo_b = population_.at(b);
-                    next_generation.emplace_back(chromo_a + chromo_b);
-                }
                 // and just full-on replace it. Do it.
                 population_ = next_generation;
-            }
+                evaluate();
                 break;
             case replacement_kind_t::steady_state:
+                auto size = population_.size();
+                population_.insert(
+                        population_.end(),
+                        std::make_move_iterator(next_generation.begin()),
+                        std::make_move_iterator(next_generation.end())
+                );
+                most_fit_member_ = population_.size() - 1; //invalidate evaluation. TODO need a better way!
+                evaluate();
+                // lop off the least-fit elements at the end.
+                population_.erase(population_.begin() + size, population_.end());
+
                 break;
         }
 
-        evaluate();
     }
 }
 

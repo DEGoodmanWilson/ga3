@@ -41,6 +41,7 @@ chromosome::chromosome(const std::vector<gene_range> bounds,
 {
     // randomly initialize the genes
     // TODO this should be done in the gene constructor?
+    genes_.reserve(gene_bounds_.size());
     for (uint64_t n = 0; n < gene_bounds_.size(); ++n)
     {
         std::uniform_int_distribution<uint64_t> dis(gene_bounds_[n].first, gene_bounds_[n].second);
