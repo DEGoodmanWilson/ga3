@@ -121,25 +121,27 @@ chromosome population::evaluate()
 
 size_t population::select_()
 {
+
+
     //TODO break these out into individual functions
     // The difference is that with ranked, we randomly pick a chromosome,
+
     switch (population::selection_kind_)
     {
         case selection_kind_t::roulette:
         {
             // calculate the total fitness of the population
-            double sum_fitness = std::accumulate(population_.begin(),
-                                                 population_.end(),
-                                                 0.0,
-                                                 [](double a, const chromosome &b)
-                                                 {
-                                                     return a + b.get_fitness();
-                                                 });
-
+            double sum = std::accumulate(population_.begin(),
+                                  population_.end(),
+                                  0.0,
+                                  [](double a, const chromosome &b)
+                                  {
+                                      return a + b.get_fitness();
+                                  });
 
             //spin that wheel!
             // The values on the wheel range from 0 to sum_fitness
-            std::uniform_real_distribution<double> dis(0, sum_fitness);
+            std::uniform_real_distribution<double> dis(0, sum);
             auto wheel_position = dis(private_::gen_);
 
             // now we need to determine _which_ chromosome this wheel position corresponds to!
@@ -157,8 +159,32 @@ size_t population::select_()
             return i;
         }
         case selection_kind_t::ranked:
-            break;
+        {
+            // instead of fitness, we are just calling the most fit 1.0, the second fit 1/2, the third most fit 1/3 and so on.
+            double sum{0.0};
+            for (auto i = 1; i <= population_size_; ++i)
+            {
+                sum += (1.0 / i);
+            }
+
+            //spin that wheel!
+            std::uniform_real_distribution<double> dis(0, sum);
+            auto wheel_position = dis(private_::gen_);
+
+            size_t i{0};
+            double partial_sum{0.0};
+            do
+            {
+                ++i;
+                auto f = 1.0 / i;
+                partial_sum += f;
+            } while ((partial_sum < wheel_position) && (i != population_.size() - 1));
+
+
+            return i;
+        }
     }
+    return 0;
 }
 
 void population::evolve(uint64_t generations)
