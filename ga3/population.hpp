@@ -56,7 +56,21 @@ public:
     chromosome &operator[](const uint64_t index);
     chromosome at(const uint64_t index);
 
+    enum class selection_kind_t
+    {
+        roulette,
+        ranked
+    };
+    static void set_selection(selection_kind_t kind);
+    enum class replacement_kind_t
+    {
+        steady_state,
+        generational
+    };
+    static void set_replacement(replacement_kind_t kind);
+
     chromosome best_fit();
+    void evolve(uint64_t generations);
 
 private:
     std::vector<chromosome> population_;
@@ -64,6 +78,9 @@ private:
     OPT_NS::optional<chromosome> most_fit_member_;
     uint64_t task_size_;
     ThreadPool::ThreadPool thread_pool_;
+    static selection_kind_t selection_kind_;
+    static replacement_kind_t replacement_kind_;
+    size_t select_();
 };
 
 } //namespace ga3

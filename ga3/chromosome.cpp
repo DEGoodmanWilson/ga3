@@ -30,7 +30,7 @@ namespace ga3
 std::random_device chromosome::rd_{};  //Will be used to obtain a seed for the random number engine
 std::mt19937 chromosome::gen_{rd_()};
 
-crossover_kind_t chromosome::crossover_kind_{crossover_kind_t::one_point};
+chromosome::crossover_kind_t chromosome::crossover_kind_{chromosome::crossover_kind_t::one_point};
 
 chromosome::chromosome(const std::vector<gene_range> bounds,
                        evaluation_function_t evaluation_function) :
@@ -70,6 +70,19 @@ double chromosome::evaluate(void)
     if (!fitness_)
     {
         fitness_ = evaluation_function_(this->genes_);
+        if (fitness_ < 0.0)
+        {
+            throw std::out_of_range("Fitness values cannot be less than zero");
+        }
+    }
+    return *fitness_;
+}
+
+double chromosome::get_fitness(void) const
+{
+    if (!fitness_)
+    {
+        throw std::runtime_error("Fitness values must be already calculated");
     }
     return *fitness_;
 }
@@ -130,8 +143,10 @@ chromosome chromosome::operator+(chromosome const &rhs)
 bool chromosome::operator<(const ga3::chromosome &rhs) const
 {
     // TODO throw something if fitness_ is false!
-    if(!this->fitness_ || !rhs.fitness_)
+    if (!this->fitness_ || !rhs.fitness_)
+    {
         throw std::invalid_argument("One or more chromosomes have not been evaluated!");
+    }
 
     return *(this->fitness_) < *(rhs.fitness_);
 }
@@ -139,8 +154,10 @@ bool chromosome::operator<(const ga3::chromosome &rhs) const
 bool chromosome::operator>(const ga3::chromosome &rhs) const
 {
     // TODO throw something if fitness_ is false!
-    if(!this->fitness_ || !rhs.fitness_)
+    if (!this->fitness_ || !rhs.fitness_)
+    {
         throw std::invalid_argument("One or more chromosomes have not been evaluated!");
+    }
 
     return *(this->fitness_) > *(rhs.fitness_);
 }

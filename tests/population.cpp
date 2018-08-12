@@ -35,19 +35,19 @@ static ga3::chromosome::evaluation_function_t default_fitness_function
 
 static std::atomic_uint8_t threads{0}, peak_threads{0};
 static ga3::chromosome::evaluation_function_t counter
-    {
-        [](std::vector<ga3::gene> &genes) -> double
         {
-            threads++;
-            if(threads > peak_threads)
-            {
-                uint8_t temp = threads;
-                peak_threads = temp;
-            }
-            threads--;
-            return std::accumulate(genes.begin(), genes.end(), 0);
-        }
-    };
+                [](std::vector<ga3::gene> &genes) -> double
+                {
+                    threads++;
+                    if (threads > peak_threads)
+                    {
+                        uint8_t temp = threads;
+                        peak_threads = temp;
+                    }
+                    threads--;
+                    return std::accumulate(genes.begin(), genes.end(), 0);
+                }
+        };
 
 SCENARIO("populations")
 {
@@ -74,7 +74,7 @@ SCENARIO("populations")
             }
         }
 
-        THEN("it be able to tell us the most fit chromosome without threading")
+        THEN("it should be able to tell us the most fit chromosome without threading")
         {
             threads = peak_threads = 0;
             ga3::population pop{pop_size, gene_bounds_10, counter, 0};
@@ -84,15 +84,30 @@ SCENARIO("populations")
             REQUIRE(peak_threads == 1);
         }
 
-        THEN("it be able to tell us the most fit chromosome with threading")
+        THEN("it should be able to tell us the most fit chromosome with threading")
         {
-            threads = 0; peak_threads = 0;
+            threads = 0;
+            peak_threads = 0;
 
             ga3::population pop{pop_size, gene_bounds_10, counter};
             const auto start_fitness = pop.best_fit().evaluate();
 
             REQUIRE(start_fitness == 10);
             REQUIRE(peak_threads > 1);
+        }
+
+        THEN("it should be able to converge on a solution using roulette selection and generational replacement")
+        {
+            ga3::population::set_selection(ga3::population::selection_kind_t::roulette);
+            ga3::population::set_replacement(ga3::population::replacement_kind_t::generational);
+            ga3::population pop{5, gene_bounds_10, counter};
+            const auto start_fitness = pop.best_fit().evaluate();
+
+            pop.evolve(10); //10 generations
+            const auto end_fitness = pop.best_fit().evaluate();
+
+            REQUIRE(end_fitness > start_fitness);
+            // TODO how to test that generational replacement is working?
         }
     }
 }

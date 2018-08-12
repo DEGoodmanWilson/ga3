@@ -74,6 +74,27 @@ SCENARIO("chromosomes")
             }
         }
     }
+    GIVEN("a chromosome whose fitness is negative")
+    {
+        THEN("evaluate() should throw")
+        {
+            ga3::chromosome chromo{gene_bounds_10, [](std::vector<ga3::gene> &genes) -> double
+            {
+                return -1.0;
+            }};
+
+            REQUIRE_THROWS(chromo.evaluate());
+        }
+    }
+    GIVEN("a chromosome that has not been evaluated")
+    {
+        THEN("get_fitness() should throw")
+        {
+            ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
+
+            REQUIRE_THROWS(chromo.get_fitness());
+        }
+    }
     GIVEN("two genes")
     {
         THEN("we should be able to splice them with 1-point crossover")
@@ -87,7 +108,7 @@ SCENARIO("chromosomes")
                 chromo2[i] = value2;
             }
 
-            ga3::chromosome::set_crossover(ga3::crossover_kind_t::one_point);
+            ga3::chromosome::set_crossover(ga3::chromosome::crossover_kind_t::one_point);
 
             auto new_chromo = chromo1 + chromo2;
 
@@ -107,7 +128,7 @@ SCENARIO("chromosomes")
                 chromo2[i] = value2;
             }
 
-            ga3::chromosome::set_crossover(ga3::crossover_kind_t::two_point);
+            ga3::chromosome::set_crossover(ga3::chromosome::crossover_kind_t::two_point);
 
             auto new_chromo = chromo1 + chromo2;
 
@@ -140,7 +161,7 @@ SCENARIO("chromosomes")
                 chromo2[i] = value2;
             }
 
-            ga3::chromosome::set_crossover(ga3::crossover_kind_t::uniform);
+            ga3::chromosome::set_crossover(ga3::chromosome::crossover_kind_t::uniform);
 
             // this is stochastic. So, let's add chromos a ton of times, and look at the distributions for each gene
             std::array<uint64_t, size> sum{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};

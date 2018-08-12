@@ -34,13 +34,6 @@
 namespace ga3
 {
 
-enum class crossover_kind_t
-{
-    one_point,
-    two_point,
-    uniform
-};
-
 ///A class representing a chromosome i.e., a member of the population.
 /**
  * The chromosome class represents a single chromosome in a population.
@@ -68,11 +61,16 @@ public:
     bool operator<(const chromosome &rhs) const;
     bool operator>(const chromosome &rhs) const;
 
-    static crossover_kind_t crossover_kind_;
-
+    enum class crossover_kind_t
+    {
+        one_point,
+        two_point,
+        uniform
+    };
     static void set_crossover(crossover_kind_t kind);
 
     double evaluate(void);
+    double get_fitness(void) const;
 
 private:
     std::vector<gene> genes_;
@@ -83,6 +81,7 @@ private:
 
     static std::random_device rd_;  //Will be used to obtain a seed for the random number engine
     static std::mt19937 gen_;
+    static crossover_kind_t crossover_kind_;
 };
 
 

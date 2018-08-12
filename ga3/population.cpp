@@ -26,6 +26,15 @@
 
 namespace ga3
 {
+population::selection_kind_t population::selection_kind_{population::selection_kind_t::roulette};
+population::replacement_kind_t population::replacement_kind_{population::replacement_kind_t::generational};
+
+namespace private_
+{
+static std::random_device rd_{};  //Will be used to obtain a seed for the random number engine
+static std::mt19937 gen_{rd_()};
+}
+
 population::population(uint64_t population_size,
                        std::vector<gene_range> gene_bounds,
                        chromosome::evaluation_function_t evaluation_function,
@@ -98,11 +107,79 @@ chromosome population::best_fit()
         }
 
         // put all the chromos processed into _chromosomes
+        // NOTICE THIS IS REALLY ONLY NEEDED FOR RANKED SELECTION
+        // TODO make this more sophisitcated to not have to sort if we aren't using ranked selection
         std::sort(population_.begin(), population_.end(), std::greater<chromosome>());
 
     }
     most_fit_member_ = population_[0];
     return *most_fit_member_;
+}
+
+void population::set_selection(ga3::population::selection_kind_t kind)
+{
+    population::selection_kind_ = kind;
+}
+
+void population::set_replacement(ga3::population::replacement_kind_t kind)
+{
+    population::replacement_kind_ = kind;
+}
+
+size_t population::select_()
+{
+    //TODO break these out into individual functions
+    // The difference is that with ranked, we randomly pick a chromosome,
+    switch (population::selection_kind_)
+    {
+        case selection_kind_t::roulette:
+        {
+            // TODO we shouldn't have to rely on this being sorted to work
+            double min_fitness = population_.rbegin()->evaluate(); //already sorted so this works
+
+            // calculate the total fitness of the population
+            double sum_fitness = std::accumulate(population_.begin(), population_.end(), 0.0, [](double a, const chromosome &b)
+            {
+                return a + b.get_fitness();
+            });
+
+
+            //spin that wheel!
+                    // The values on the wheel range from 0 to sum_fitness
+            std::uniform_real_distribution<double> dis(0, sum_fitness);
+            auto wheel_position = dis(private_::gen_);
+
+            // now we need to determine _which_ chromosome this wheel position corresponds to!
+
+            size_t i{0};
+            double partial_sum{0.0};
+            while( (partial_sum < wheel_position) && (i < population_.size()))
+            {
+                auto f = population_[i].get_fitness();
+                partial_sum += f;
+                ++i;
+            }
+
+            return i;
+        }
+        case selection_kind_t::ranked:
+            break;
+    }
+}
+
+void population::evolve(uint64_t generations)
+{
+    for (uint64_t i = 0; i < generations; ++i)
+    {
+        //TODO break these out into individual functions
+        switch (population::replacement_kind_)
+        {
+            case replacement_kind_t::generational:
+                break;
+            case replacement_kind_t::steady_state:
+                break;
+        }
+    }
 }
 
 }
