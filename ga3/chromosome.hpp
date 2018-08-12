@@ -56,6 +56,8 @@ public:
 
     gene at(const uint64_t index) const;
 
+    void mutate(void);
+
     chromosome operator+(chromosome const &rhs);
 
     bool operator<(const chromosome &rhs) const;

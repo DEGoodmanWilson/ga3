@@ -73,6 +73,13 @@ SCENARIO("chromosomes")
                 REQUIRE(chromo[i] == value);
             }
         }
+        THEN("Mutation should work!")
+        {
+            ga3::chromosome chromo{{{min, max}}, default_fitness_function};
+            auto value = chromo.at(0);
+            chromo.mutate();
+            REQUIRE(value != chromo.at(0));
+        }
     }
     GIVEN("a chromosome whose fitness is negative")
     {

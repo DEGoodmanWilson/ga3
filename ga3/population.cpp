@@ -26,9 +26,6 @@
 
 namespace ga3
 {
-population::selection_kind_t population::selection_kind_{population::selection_kind_t::roulette};
-population::replacement_kind_t population::replacement_kind_{population::replacement_kind_t::generational};
-
 namespace private_
 {
 static std::random_device rd_{};  //Will be used to obtain a seed for the random number engine
@@ -43,7 +40,10 @@ population::population(uint64_t population_size,
         num_threads_{num_threads},
         most_fit_member_{0},
         task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
-        thread_pool_{num_threads_}
+        thread_pool_{num_threads_},
+        selection_kind_{selection_kind_t::roulette},
+        replacement_kind_{replacement_kind_t::generational},
+        mutation_rate_{0.0}
 
 // TODO pre-set population capacity
 {
@@ -181,7 +181,19 @@ void population::evolve(uint64_t generations)
             auto b = select_();
             auto chromo_a = population_.at(a);
             auto chromo_b = population_.at(b);
-            next_generation.emplace_back(chromo_a + chromo_b);
+            auto new_chromo = chromo_a + chromo_b;
+
+            if(mutation_rate_ > 0.0)
+            {
+                // mutate it!
+                std::uniform_real_distribution<double> dis(0.0, 1.0);
+                if(dis(private_::gen_) <= mutation_rate_)
+                {
+                    new_chromo.mutate();
+                }
+            }
+
+            next_generation.emplace_back(new_chromo);
         }
 
         //TODO break these out into individual functions

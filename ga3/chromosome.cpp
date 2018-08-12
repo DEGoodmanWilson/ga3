@@ -60,6 +60,21 @@ gene chromosome::at(const uint64_t index) const
     return genes_.at(index);
 }
 
+void chromosome::mutate()
+{
+    std::uniform_int_distribution<size_t> index_dis(0, gene_bounds_.size()-1);
+    auto index{index_dis(gen_)};
+    std::uniform_int_distribution<uint64_t> value_dis(gene_bounds_[index].first, gene_bounds_[index].second);
+
+    auto new_val = genes_.at(index);
+    while(new_val == genes_.at(index))
+    {
+        new_val = value_dis(gen_);
+    }
+
+    genes_[index] = new_val;
+}
+
 //static
 void chromosome::set_crossover(crossover_kind_t kind)
 {

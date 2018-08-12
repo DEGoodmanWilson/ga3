@@ -61,13 +61,15 @@ public:
         roulette,
         ranked
     };
-    static void set_selection(selection_kind_t kind);
+    void set_selection(selection_kind_t kind);
     enum class replacement_kind_t
     {
         steady_state,
         generational
     };
-    static void set_replacement(replacement_kind_t kind);
+    void set_replacement(replacement_kind_t kind);
+
+    void set_mutation_rate(double rate); //TODO can we move these configurators into the constructor?
 
     chromosome evaluate();
     void evolve(uint64_t generations);
@@ -78,8 +80,10 @@ private:
     size_t most_fit_member_;
     uint64_t task_size_;
     ThreadPool::ThreadPool thread_pool_;
-    static selection_kind_t selection_kind_;
-    static replacement_kind_t replacement_kind_;
+    selection_kind_t selection_kind_;
+    replacement_kind_t replacement_kind_;
+    double mutation_rate_;
+
     size_t select_();
 };
 
