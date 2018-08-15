@@ -51,9 +51,10 @@ SCENARIO("chromosomes")
 {
     GIVEN("a newly constructed chromosome")
     {
+        ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
+
         THEN("it should be initialized with N random numbers in the appropriate range")
         {
-            ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
             for (int i = 0; i < size; ++i)
             {
                 REQUIRE(chromo[i] >= min);
@@ -62,7 +63,6 @@ SCENARIO("chromosomes")
         }
         THEN("We ought to be able to set particular genes")
         {
-            ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
             constexpr uint64_t value{2};
             for (int i = 0; i < size; ++i)
             {
@@ -73,12 +73,30 @@ SCENARIO("chromosomes")
                 REQUIRE(chromo[i] == value);
             }
         }
+        THEN("We should be able to examine the genes")
+        {
+            bool identical{false};
+            auto my_genes = chromo.get_genes();
+            REQUIRE(my_genes.size() == gene_bounds_10.size());
+            for(uint8_t i = 0; i < my_genes.size(); ++i)
+            {
+                REQUIRE(my_genes.at(i) == chromo.at(i));
+            }
+        }
         THEN("Mutation should work!")
         {
-            ga3::chromosome chromo{{{min, max}}, default_fitness_function};
-            auto value = chromo.at(0);
+            auto old_chromo{chromo};
             chromo.mutate();
-            REQUIRE(value != chromo.at(0));
+            bool changed{false};
+            for(uint8_t i=0; i < gene_bounds_10.size(); ++i)
+            {
+                if(old_chromo.at(i) != chromo.at(i))
+                {
+                    changed = true;
+                    break;
+                }
+            }
+            REQUIRE(changed == true);
         }
     }
     GIVEN("a chromosome whose fitness is negative")
