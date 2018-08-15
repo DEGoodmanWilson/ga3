@@ -73,6 +73,7 @@ public:
 
     double evaluate(void);
     double get_fitness(void) const;
+    std::vector<gene> get_genes(void) const;
 
 private:
     std::vector<gene> genes_;

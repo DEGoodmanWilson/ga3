@@ -103,6 +103,11 @@ double chromosome::get_fitness(void) const
     return *fitness_;
 }
 
+std::vector<gene> chromosome::get_genes() const
+{
+    return genes_;
+}
+
 chromosome chromosome::operator+(chromosome const &rhs)
 {
     // what we do is going to depend on the crossover function that is set.
