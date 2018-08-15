@@ -29,7 +29,7 @@
 #include <random>
 #include <vector>
 #include <ga3/gene.hpp>
-#include <ga3/optional.h>
+#include <ga3/optional.hpp>
 
 namespace ga3
 {

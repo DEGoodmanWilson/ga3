@@ -29,7 +29,7 @@
 #include <vector>
 #include <functional>
 #include <ga3/chromosome.hpp>
-#include <ThreadPool/ThreadPool.h>
+#include <ThreadPool/ThreadPool.hpp>
 
 namespace ga3
 {

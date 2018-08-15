@@ -8,33 +8,26 @@ class Ga2Conan(ConanFile):
     url = "https://github.com/DEGoodmanWilson/ga3.git"
     description = "A basic library for implementing genetic algorithms in modern C++"
     settings = "os", "compiler", "build_type", "arch"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
+    options = {"shared":            [True, False],
+               "build_ga3_tests":   [True, False]}
+    default_options = "shared=False", "build_ga3_tests=False"
+    exports = ["*"]
     generators = "cmake"
-
-#     def source(self):
-#         self.run("git clone %s"%(self.url))
-#         self.run("cd ga3 && git checkout v%s"%(self.version))
-#         # This small hack might be useful to guarantee proper /MT /MD linkage in MSVC
-#         # if the packaged project doesn't have variables to set it properly
-#         tools.replace_in_file("ga3/CMakeLists.txt", "PROJECT(ga3)", '''PROJECT(ga3)
-# include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-# conan_basic_setup()''')
 
     def build_requirements(self):
         self.build_requires("Catch/[~=1.9]@bincrafters/stable")
 
     def build(self):
         cmake = CMake(self)
-        cmake.configure(source_dir=self.source_folder)
+        # cmake.configure(source_dir=self.source_folder)
+        cmake.configure(defs={
+            "BUILD_GA3_TESTS": "ON" if self.options.build_ga3_tests else "OFF"
+        })
         cmake.build()
 
-        # Explicit way:
-        # self.run('cmake %s/ga3 %s' % (self.source_folder, cmake.command_line))
-        # self.run("cmake --build . %s" % cmake.build_config)
-        
     def package(self):
-        self.copy("*.h", dst="include", src="ga3")
+        self.copy("*.hpp", dst="include/ga3", src="ga3")
+        self.copy("*.hpp", dst="include/ThreadPool", src="ThreadPool") #TODO make this its own library!
         self.copy("*ga3.lib", dst="lib", keep_path=False)
         self.copy("*.dll", dst="bin", keep_path=False)
         self.copy("*.so", dst="lib", keep_path=False)

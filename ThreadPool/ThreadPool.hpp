@@ -9,7 +9,7 @@
 #ifndef THREADPOOL_HPP
 #define THREADPOOL_HPP
 
-#include "ThreadSafeQueue.h"
+#include "ThreadSafeQueue.hpp"
 
 #include <algorithm>
 #include <atomic>
