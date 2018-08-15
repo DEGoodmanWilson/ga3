@@ -26,7 +26,7 @@ class Ga2Conan(ConanFile):
 
     def build(self):
         cmake = CMake(self)
-        # cmake.configure(source_dir="%s/ga3" % sellf.source_folder)
+        cmake.configure(source_dir=self.source_folder)
         cmake.build()
 
         # Explicit way:
