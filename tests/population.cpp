@@ -102,6 +102,18 @@ SCENARIO("populations")
             REQUIRE(peak_threads > 2);
         }
 
+        THEN("it should be able to tell us the most fit chromosome without threading")
+        {
+            threads = 0;
+            peak_threads = 0;
+
+            ga3::population pop{pop_size, gene_bounds_10, counter, ga3::population::single_threaded{true}};
+            const auto start_fitness = pop.evaluate().evaluate();
+
+            REQUIRE(start_fitness == 10);
+            REQUIRE(peak_threads == 1);
+        }
+
         THEN("it should be able to converge on a solution using roulette selection and generational replacement")
         {
             ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::roulette, ga3::population::replacement_kind_t::generational};
@@ -143,7 +155,7 @@ SCENARIO("populations")
 
         THEN("it should be able to converge on a solution using ranked selection and steady-state replacement")
         {
-            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::ranked, ga3::population::replacement_kind_t::steady_state};
+            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::ranked, ga3::population::replacement_kind_t::steady_state, ga3::population::single_threaded{true}};
 
             const auto start_fitness = pop.evaluate().evaluate();
 

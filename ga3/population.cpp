@@ -55,9 +55,28 @@ void population::set_option_(ga3::population::replacement_kind_t value)
     replacement_kind_ = value;
 }
 
+void population::set_option_(ga3::population::single_threaded value)
+{
+    single_threaded_ = value;
+    if (single_threaded_)
+    {
+        num_threads_ = 0;
+    }
+}
+
 void population::set_option_(ga3::population::mutation_rate value)
 {
     mutation_rate_ = value;
+}
+
+void population::set_option_(ga3::population::crossover_rate value)
+{
+    crossover_rate_ = value;
+}
+
+void population::set_option_(ga3::population::replacement_rate value)
+{
+    replacement_rate_ = value;
 }
 
 chromosome &population::operator[](const uint64_t index)
@@ -132,12 +151,12 @@ size_t population::select_()
         {
             // calculate the total fitness of the population
             double sum = std::accumulate(population_.begin(),
-                                  population_.end(),
-                                  0.0,
-                                  [](double a, const chromosome &b)
-                                  {
-                                      return a + b.get_fitness();
-                                  });
+                                         population_.end(),
+                                         0.0,
+                                         [](double a, const chromosome &b)
+                                         {
+                                             return a + b.get_fitness();
+                                         });
 
             //spin that wheel!
             // The values on the wheel range from 0 to sum_fitness
@@ -194,25 +213,30 @@ void population::evolve(uint64_t generations)
     for (uint64_t i = 0; i < generations; ++i)
     {
         decltype(population_) next_generation;
-        for (size_t i = 0; i < population_.size(); ++i)
+        double next_pop_size = population_size_ * replacement_rate_;
+        for (size_t j = 0; j < next_pop_size; ++j)
         {
             auto a = select_();
-            auto b = select_();
             auto chromo_a = population_.at(a);
-            auto chromo_b = population_.at(b);
-            auto new_chromo = chromo_a + chromo_b;
 
-            if (mutation_rate_ > 0.0)
+            std::uniform_real_distribution<double> dis(0.0, 1.0);
+
+            // the shortcut is because crossover is frequently 1.0, and we don't want to waste time generating a random number in that case
+            if ((crossover_rate_ == 1.0) || (dis(private_::gen_) <= crossover_rate_))
             {
-                // mutate it!
-                std::uniform_real_distribution<double> dis(0.0, 1.0);
-                if (dis(private_::gen_) <= mutation_rate_)
-                {
-                    new_chromo.mutate();
-                }
+                // cross it over! it!
+                auto b = select_();
+                auto chromo_b = population_.at(b);
+                chromo_a = chromo_a + chromo_b;
             }
 
-            next_generation.emplace_back(new_chromo);
+            if ((mutation_rate_ > 0.0) && (dis(private_::gen_) <= mutation_rate_))
+            {
+                // mutate it!
+                chromo_a.mutate();
+            }
+
+            next_generation.emplace_back(chromo_a);
         }
 
         //TODO break these out into individual functions

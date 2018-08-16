@@ -54,13 +54,16 @@ public:
                std::vector<gene_range> gene_bounds,
                chromosome::evaluation_function_t evaluation_function) :
             num_threads_{std::thread::hardware_concurrency() - 1},
+            population_size_{population_size},
             most_fit_member_{0},
             task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
             thread_pool_{num_threads_},
             selection_kind_{selection_kind_t::roulette},
             replacement_kind_{replacement_kind_t::generational},
+            single_threaded_{false},
             mutation_rate_{0.0},
-            population_size_{population_size}
+            crossover_rate_{1.0},
+            replacement_rate_{1.0}
     {
         initialize_(population_size, std::move(gene_bounds), std::move(evaluation_function));
     }
@@ -71,13 +74,16 @@ public:
                chromosome::evaluation_function_t evaluation_function,
                Os &&...os) :
             num_threads_{std::thread::hardware_concurrency() - 1},
+            population_size_{population_size},
             most_fit_member_{0},
             task_size_{(num_threads_ > 0) ? population_size / num_threads_ : 0},
             thread_pool_{num_threads_},
             selection_kind_{selection_kind_t::roulette},
             replacement_kind_{replacement_kind_t::generational},
+            single_threaded_{false},
             mutation_rate_{0.0},
-            population_size_{population_size}
+            crossover_rate_{1.0},
+            replacement_rate_{1.0}
     {
         initialize_(population_size, std::move(gene_bounds), std::move(evaluation_function));
         set_options_(GA3_FWD(os)...);
@@ -110,11 +116,14 @@ public:
 
 
     // configuration types
-    MAKE_NUMERIC_LIKE(size_t, number_of_threads);
+    MAKE_NUMERIC_LIKE(bool, single_threaded);
 
     MAKE_NUMERIC_LIKE(double, mutation_rate);
+    MAKE_NUMERIC_LIKE(double, crossover_rate);
+    MAKE_NUMERIC_LIKE(double, replacement_rate);
 
 private:
+    size_t population_size_;
     std::vector<chromosome> population_;
     uint32_t num_threads_;
     size_t most_fit_member_;
@@ -122,8 +131,12 @@ private:
     ThreadPool::ThreadPool thread_pool_;
     selection_kind_t selection_kind_;
     replacement_kind_t replacement_kind_;
+    bool single_threaded_;
     double mutation_rate_;
-    size_t population_size_;
+    double crossover_rate_;
+    double replacement_rate_;
+
+
 
     size_t select_(void);
 
@@ -149,7 +162,10 @@ private:
 
     void set_option_(replacement_kind_t value);
 
-    void set_option_(mutation_rate value); // mutation rate
+    void set_option_(single_threaded value);
+    void set_option_(mutation_rate value);
+    void set_option_(crossover_rate value);
+    void set_option_(replacement_rate value);
 
 };
 
