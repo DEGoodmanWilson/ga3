@@ -41,7 +41,7 @@ void population::initialize_(uint64_t population_size,
     population_.reserve(population_size);
     for (auto p = 0; p < population_size; ++p)
     {
-        population_.emplace_back(gene_bounds, evaluation_function);
+        population_.emplace_back(gene_bounds, crossover_kind_, evaluation_function);
     }
 }
 
@@ -72,6 +72,11 @@ void population::set_option_(ga3::population::mutation_rate value)
 void population::set_option_(ga3::population::crossover_rate value)
 {
     crossover_rate_ = value;
+}
+
+void population::set_option_(ga3::chromosome::crossover_kind_t value)
+{
+    crossover_kind_ = value;
 }
 
 void population::set_option_(ga3::population::replacement_rate value)

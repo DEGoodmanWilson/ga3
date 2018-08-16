@@ -30,12 +30,12 @@ namespace ga3
 std::random_device chromosome::rd_{};  //Will be used to obtain a seed for the random number engine
 std::mt19937 chromosome::gen_{rd_()};
 
-chromosome::crossover_kind_t chromosome::crossover_kind_{chromosome::crossover_kind_t::one_point};
-
 chromosome::chromosome(const std::vector<gene_range> bounds,
+                       chromosome::crossover_kind_t crossover_kind,
                        evaluation_function_t evaluation_function) :
         gene_bounds_{bounds},
         fitness_{OPT_NS::nullopt},
+        crossover_kind_{crossover_kind},
         evaluation_function_{evaluation_function}
 // TODO pre-set population capacity
 {
@@ -75,12 +75,6 @@ void chromosome::mutate()
     genes_[index] = new_val;
 }
 
-//static
-void chromosome::set_crossover(crossover_kind_t kind)
-{
-    crossover_kind_ = kind;
-}
-
 double chromosome::evaluate(void)
 {
     if (!fitness_)
@@ -115,7 +109,7 @@ chromosome chromosome::operator+(chromosome const &rhs)
     chromosome result{*this};
     const auto size = genes_.size();
 
-    switch (chromosome::crossover_kind_)
+    switch (crossover_kind_)
     {
         case crossover_kind_t::one_point:
         {

@@ -63,6 +63,7 @@ public:
             single_threaded_{false},
             mutation_rate_{0.0},
             crossover_rate_{1.0},
+            crossover_kind_{chromosome::crossover_kind_t::one_point},
             replacement_rate_{1.0}
     {
         initialize_(population_size, std::move(gene_bounds), std::move(evaluation_function));
@@ -83,6 +84,7 @@ public:
             single_threaded_{false},
             mutation_rate_{0.0},
             crossover_rate_{1.0},
+            crossover_kind_{chromosome::crossover_kind_t::one_point},
             replacement_rate_{1.0}
     {
         initialize_(population_size, std::move(gene_bounds), std::move(evaluation_function));
@@ -134,6 +136,7 @@ private:
     bool single_threaded_;
     double mutation_rate_;
     double crossover_rate_;
+    chromosome::crossover_kind_t crossover_kind_;
     double replacement_rate_;
 
 
@@ -165,6 +168,7 @@ private:
     void set_option_(single_threaded value);
     void set_option_(mutation_rate value);
     void set_option_(crossover_rate value);
+    void set_option_(chromosome::crossover_kind_t value);
     void set_option_(replacement_rate value);
 
 };

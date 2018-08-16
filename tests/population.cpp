@@ -127,6 +127,19 @@ SCENARIO("populations")
             // TODO how to test that generational replacement is working?
         }
 
+        THEN("it should be able to converge on a solution using roulette selection and generational replacement and uniform crossover")
+        {
+            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::roulette, ga3::population::replacement_kind_t::generational, ga3::chromosome::crossover_kind_t::uniform};
+
+            const auto start_fitness = pop.evaluate().evaluate();
+
+            pop.evolve(100); //10 generations
+            const auto end_fitness = pop.evaluate().evaluate();
+
+            REQUIRE(end_fitness > start_fitness);
+            // TODO how to test that generational replacement is working?
+        }
+
         THEN("it should be able to converge on a solution using roulette selection and steady-state replacement")
         {
             ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::roulette, ga3::population::replacement_kind_t::steady_state};

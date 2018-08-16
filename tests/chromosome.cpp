@@ -8,6 +8,9 @@
 static const uint64_t min{1};
 static const uint64_t max{3};
 static constexpr uint64_t size{10};
+static const auto one_point{ga3::chromosome::crossover_kind_t::one_point};
+static const auto two_point{ga3::chromosome::crossover_kind_t::two_point};
+static const auto uniform{ga3::chromosome::crossover_kind_t::uniform};
 
 static const std::vector<ga3::gene_range> gene_bounds_10 =
         {{
@@ -51,7 +54,7 @@ SCENARIO("chromosomes")
 {
     GIVEN("a newly constructed chromosome")
     {
-        ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
+        ga3::chromosome chromo{gene_bounds_10, one_point, default_fitness_function};
 
         THEN("it should be initialized with N random numbers in the appropriate range")
         {
@@ -78,7 +81,7 @@ SCENARIO("chromosomes")
             bool identical{false};
             auto my_genes = chromo.get_genes();
             REQUIRE(my_genes.size() == gene_bounds_10.size());
-            for(uint8_t i = 0; i < my_genes.size(); ++i)
+            for (uint8_t i = 0; i < my_genes.size(); ++i)
             {
                 REQUIRE(my_genes.at(i) == chromo.at(i));
             }
@@ -88,9 +91,9 @@ SCENARIO("chromosomes")
             auto old_chromo{chromo};
             chromo.mutate();
             bool changed{false};
-            for(uint8_t i=0; i < gene_bounds_10.size(); ++i)
+            for (uint8_t i = 0; i < gene_bounds_10.size(); ++i)
             {
-                if(old_chromo.at(i) != chromo.at(i))
+                if (old_chromo.at(i) != chromo.at(i))
                 {
                     changed = true;
                     break;
@@ -103,7 +106,7 @@ SCENARIO("chromosomes")
     {
         THEN("evaluate() should throw")
         {
-            ga3::chromosome chromo{gene_bounds_10, [](std::vector<ga3::gene> &genes) -> double
+            ga3::chromosome chromo{gene_bounds_10, one_point, [](std::vector<ga3::gene> &genes) -> double
             {
                 return -1.0;
             }};
@@ -115,7 +118,7 @@ SCENARIO("chromosomes")
     {
         THEN("get_fitness() should throw")
         {
-            ga3::chromosome chromo{gene_bounds_10, default_fitness_function};
+            ga3::chromosome chromo{gene_bounds_10, one_point, default_fitness_function};
 
             REQUIRE_THROWS(chromo.get_fitness());
         }
@@ -124,7 +127,8 @@ SCENARIO("chromosomes")
     {
         THEN("we should be able to splice them with 1-point crossover")
         {
-            ga3::chromosome chromo1{gene_bounds_10, default_fitness_function}, chromo2{gene_bounds_10, default_fitness_function};
+            ga3::chromosome chromo1{gene_bounds_10, one_point, default_fitness_function},
+                    chromo2{gene_bounds_10, one_point, default_fitness_function};
             constexpr uint64_t value1{1}, value2{2};
 
             for (int i = 0; i < size; ++i)
@@ -132,8 +136,6 @@ SCENARIO("chromosomes")
                 chromo1[i] = value1;
                 chromo2[i] = value2;
             }
-
-            ga3::chromosome::set_crossover(ga3::chromosome::crossover_kind_t::one_point);
 
             auto new_chromo = chromo1 + chromo2;
 
@@ -144,7 +146,8 @@ SCENARIO("chromosomes")
 
         THEN("we should be able to splice them with 2-point crossover")
         {
-            ga3::chromosome chromo1{gene_bounds_10, default_fitness_function}, chromo2{gene_bounds_10, default_fitness_function};
+            ga3::chromosome chromo1{gene_bounds_10, two_point, default_fitness_function},
+                    chromo2{gene_bounds_10, one_point, default_fitness_function};
             constexpr uint64_t value1{1}, value2{2};
 
             for (int i = 0; i < size; ++i)
@@ -152,8 +155,6 @@ SCENARIO("chromosomes")
                 chromo1[i] = value1;
                 chromo2[i] = value2;
             }
-
-            ga3::chromosome::set_crossover(ga3::chromosome::crossover_kind_t::two_point);
 
             auto new_chromo = chromo1 + chromo2;
 
@@ -177,7 +178,8 @@ SCENARIO("chromosomes")
 
         THEN("we should be able to splice them with uniform crossover")
         {
-            ga3::chromosome chromo1{gene_bounds_10, default_fitness_function}, chromo2{gene_bounds_10, default_fitness_function};
+            ga3::chromosome chromo1{gene_bounds_10, uniform, default_fitness_function},
+                    chromo2{gene_bounds_10, one_point, default_fitness_function};
             constexpr uint64_t value1{0}, value2{1};
 
             for (int i = 0; i < size; ++i)
@@ -185,8 +187,6 @@ SCENARIO("chromosomes")
                 chromo1[i] = value1;
                 chromo2[i] = value2;
             }
-
-            ga3::chromosome::set_crossover(ga3::chromosome::crossover_kind_t::uniform);
 
             // this is stochastic. So, let's add chromos a ton of times, and look at the distributions for each gene
             std::array<uint64_t, size> sum{0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
@@ -211,7 +211,7 @@ SCENARIO("chromosomes")
     {
         THEN("they should be respected during chromosome initialization")
         {
-            ga3::chromosome chromo{gene_bounds_4, default_fitness_function};
+            ga3::chromosome chromo{gene_bounds_4, one_point, default_fitness_function};
 
             for (int i = 0; i < 4; ++i)
             {
@@ -225,7 +225,7 @@ SCENARIO("chromosomes")
     {
         THEN("then the fitness should be calculated exactly once.")
         {
-            ga3::chromosome chromo{gene_bounds_4, evaluation_function};
+            ga3::chromosome chromo{gene_bounds_4, one_point, evaluation_function};
             call_count = 0;
 
             auto fitness = chromo.evaluate();
