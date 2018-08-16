@@ -114,7 +114,7 @@ public:
 
     chromosome evaluate();
 
-    void evolve(uint64_t generations);
+    void evolve(uint64_t generations, std::function<void(void)> = nullptr);
 
 
     // configuration types

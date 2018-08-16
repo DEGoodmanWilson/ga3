@@ -178,5 +178,18 @@ SCENARIO("populations")
             REQUIRE(end_fitness > start_fitness);
             // TODO how to test that generational replacement is working?
         }
+
+        THEN("it should execute a post-generation hook")
+        {
+            ga3::population pop{10, gene_bounds_10_wide, default_fitness_function};
+
+            uint64_t i{0};
+            pop.evolve(100, [&](){
+                ++i;
+            });
+
+            REQUIRE(i == 100);
+            // TODO how to test that generational replacement is working?
+        }
     }
 }

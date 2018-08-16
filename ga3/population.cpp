@@ -211,7 +211,7 @@ size_t population::select_()
     return 0;
 }
 
-void population::evolve(uint64_t generations)
+void population::evolve(uint64_t generations, std::function<void(void)> post_hook)
 {
     evaluate();
 
@@ -267,6 +267,10 @@ void population::evolve(uint64_t generations)
                 break;
         }
 
+        if(post_hook)
+        {
+            post_hook();
+        }
     }
 }
 
