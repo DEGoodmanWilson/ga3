@@ -1,7 +1,7 @@
 from conans import ConanFile, CMake, tools
 
 
-class Ga2Conan(ConanFile):
+class Ga3Conan(ConanFile):
     name = "ga3"
     version = "1.0.0"
     license = "MIT"

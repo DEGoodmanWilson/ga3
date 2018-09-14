@@ -79,7 +79,7 @@ target_link_libraries(${PROJECT_NAME} ${CONAN_LIBS})
 
 # Tests
 if (BUILD_GA3_TESTS)
-    message(STATUS "Building GA2 with Tests")
+    message(STATUS "Building ga2 with Tests")
 
     add_subdirectory(tests)
 endif ()
