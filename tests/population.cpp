@@ -115,12 +115,15 @@ SCENARIO("populations")
             peak_threads = 0;
             count = 0;
 
-            ga3::population pop{pop_size, gene_bounds_10, counter, ga3::population::single_threaded{true}};
+            ga3::population::single_threaded = true;
+            ga3::population pop{pop_size, gene_bounds_10, counter};
             const auto start_fitness = pop.evaluate().evaluate();
 
             REQUIRE(start_fitness == 10);
             REQUIRE(peak_threads == 1);
             REQUIRE(count == pop_size);
+
+            ga3::population::single_threaded = false;
         }
 
         THEN("it should be able to converge on a solution using roulette selection and generational replacement")
@@ -177,7 +180,9 @@ SCENARIO("populations")
 
         THEN("it should be able to converge on a solution using ranked selection and steady-state replacement")
         {
-            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::ranked, ga3::population::replacement_kind_t::steady_state, ga3::population::single_threaded{true}};
+            ga3::population::single_threaded = true;
+
+            ga3::population pop{100, gene_bounds_10_wide, counter, ga3::population::selection_kind_t::ranked, ga3::population::replacement_kind_t::steady_state};
 
             const auto start_fitness = pop.evaluate().evaluate();
 
@@ -186,6 +191,8 @@ SCENARIO("populations")
 
             REQUIRE(end_fitness > start_fitness);
             // TODO how to test that generational replacement is working?
+
+            ga3::population::single_threaded = false;
         }
 
         THEN("it should execute a post-generation hook")

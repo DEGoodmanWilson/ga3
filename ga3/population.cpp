@@ -32,6 +32,8 @@ static std::random_device rd_{};  //Will be used to obtain a seed for the random
 static std::mt19937 gen_{rd_()};
 }
 
+bool population::single_threaded{false};
+
 // uint32_t num_threads = std::thread::hardware_concurrency() - 1
 
 void population::initialize_(uint64_t population_size,
@@ -53,15 +55,6 @@ void population::set_option_(ga3::population::selection_kind_t value)
 void population::set_option_(ga3::population::replacement_kind_t value)
 {
     replacement_kind_ = value;
-}
-
-void population::set_option_(ga3::population::single_threaded value)
-{
-    single_threaded_ = value;
-    if (single_threaded_)
-    {
-        num_threads_ = 0;
-    }
 }
 
 void population::set_option_(ga3::population::mutation_rate value)

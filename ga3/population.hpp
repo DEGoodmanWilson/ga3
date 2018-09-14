@@ -53,14 +53,13 @@ public:
     population(uint64_t population_size,
                std::vector<gene_range> gene_bounds,
                chromosome::evaluation_function_t evaluation_function) :
-            num_threads_{std::thread::hardware_concurrency() - 1},
+            num_threads_{single_threaded ? 0 :std::thread::hardware_concurrency() - 1},
             population_size_{population_size},
             most_fit_member_{0},
             task_size_{(num_threads_ > 0) ? population_size_ / num_threads_ : 0},
             thread_pool_{num_threads_},
             selection_kind_{selection_kind_t::roulette},
             replacement_kind_{replacement_kind_t::generational},
-            single_threaded_{false},
             mutation_rate_{0.0},
             crossover_rate_{1.0},
             crossover_kind_{chromosome::crossover_kind_t::one_point},
@@ -74,14 +73,13 @@ public:
                std::vector<gene_range> gene_bounds,
                chromosome::evaluation_function_t evaluation_function,
                Os &&...os) :
-            num_threads_{std::thread::hardware_concurrency() - 1},
+            num_threads_{single_threaded ? 0 : std::thread::hardware_concurrency() - 1},
             population_size_{population_size},
             most_fit_member_{0},
             task_size_{(num_threads_ > 0) ? population_size_ / num_threads_ : 0},
             thread_pool_{num_threads_},
             selection_kind_{selection_kind_t::roulette},
             replacement_kind_{replacement_kind_t::generational},
-            single_threaded_{false},
             mutation_rate_{0.0},
             crossover_rate_{1.0},
             crossover_kind_{chromosome::crossover_kind_t::one_point},
@@ -118,11 +116,11 @@ public:
 
 
     // configuration types
-    MAKE_NUMERIC_LIKE(bool, single_threaded);
-
     MAKE_NUMERIC_LIKE(double, mutation_rate);
     MAKE_NUMERIC_LIKE(double, crossover_rate);
     MAKE_NUMERIC_LIKE(double, replacement_rate);
+
+    static bool single_threaded;
 
 private:
     size_t population_size_;
@@ -133,7 +131,6 @@ private:
     ThreadPool::ThreadPool thread_pool_;
     selection_kind_t selection_kind_;
     replacement_kind_t replacement_kind_;
-    bool single_threaded_;
     double mutation_rate_;
     double crossover_rate_;
     chromosome::crossover_kind_t crossover_kind_;
@@ -165,7 +162,6 @@ private:
 
     void set_option_(replacement_kind_t value);
 
-    void set_option_(single_threaded value);
     void set_option_(mutation_rate value);
     void set_option_(crossover_rate value);
     void set_option_(chromosome::crossover_kind_t value);
