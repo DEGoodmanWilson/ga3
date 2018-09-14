@@ -50,18 +50,23 @@ static ga3::chromosome::evaluation_function_t default_fitness_function
         };
 
 static std::atomic_uint8_t threads{0}, peak_threads{0};
+static std::atomic_uint64_t count{0};
 static ga3::chromosome::evaluation_function_t counter
         {
                 [](std::vector<ga3::gene> &genes) -> double
                 {
+                    count++;
                     threads++;
                     if (threads > peak_threads)
                     {
                         uint8_t temp = threads;
                         peak_threads = temp;
                     }
+                    double retval = std::accumulate(genes.begin(), genes.end(), 0);
+//                    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
                     threads--;
-                    return std::accumulate(genes.begin(), genes.end(), 0);
+
+                    return retval;
                 }
         };
 
@@ -94,24 +99,28 @@ SCENARIO("populations")
         {
             threads = 0;
             peak_threads = 0;
+            count = 0;
 
             ga3::population pop{pop_size, gene_bounds_10, counter};
             const auto start_fitness = pop.evaluate().evaluate();
 
             REQUIRE(start_fitness == 10);
             REQUIRE(peak_threads > 2);
+            REQUIRE(count == pop_size);
         }
 
         THEN("it should be able to tell us the most fit chromosome without threading")
         {
             threads = 0;
             peak_threads = 0;
+            count = 0;
 
             ga3::population pop{pop_size, gene_bounds_10, counter, ga3::population::single_threaded{true}};
             const auto start_fitness = pop.evaluate().evaluate();
 
             REQUIRE(start_fitness == 10);
             REQUIRE(peak_threads == 1);
+            REQUIRE(count == pop_size);
         }
 
         THEN("it should be able to converge on a solution using roulette selection and generational replacement")

@@ -267,7 +267,7 @@ void population::evolve(uint64_t generations, std::function<void(void)> post_hoo
                 break;
         }
 
-        if(post_hook)
+        if (post_hook)
         {
             post_hook();
         }
