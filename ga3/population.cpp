@@ -111,7 +111,6 @@ chromosome population::evaluate()
                                                          population_[i].evaluate();
                                                      }
                                                  }));
-
         start += task_size_;
     }
 
