@@ -3,7 +3,7 @@ from conans import ConanFile, CMake, tools
 
 class Ga3Conan(ConanFile):
     name = "ga3"
-    version = "1.0.0"
+    version = "0.1.0"
     license = "MIT"
     url = "https://github.com/DEGoodmanWilson/ga3.git"
     description = "A basic library for implementing genetic algorithms in modern C++"
