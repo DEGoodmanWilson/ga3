@@ -22,6 +22,7 @@
 //     O-o
 //////////////////////////////////////////////////////////////////////
 
+#include <ThreadPool/ThreadPool.hpp>
 #include "population.hpp"
 
 namespace ga3
@@ -40,6 +41,9 @@ void population::initialize_(uint64_t population_size,
                              std::vector<gene_range> &&gene_bounds,
                              chromosome::evaluation_function_t &&evaluation_function)
 {
+    num_threads_ = single_threaded ? 0 : std::thread::hardware_concurrency() - 1;
+
+    num_tasks_for_pool_ = (num_threads_ > 0) ? num_threads_ * (population_size_ / (num_threads_ + 1)) : 0;
     population_.reserve(population_size);
     for (auto p = 0; p < population_size; ++p)
     {
@@ -100,22 +104,18 @@ chromosome population::evaluate()
     // 1) evaluate each chromosome, 2) sort the population 3) return the highest fit chromo
 
     std::vector<ThreadPool::ThreadPool::TaskFuture<void>> futures;
-    auto start{0};
+    auto i{0};
 
-    for (auto t = 0; t < num_threads_; ++t)
+    for (i = 0; i < num_tasks_for_pool_; ++i)
     {
-        futures.emplace_back(thread_pool_.submit([&, start = start]() -> auto
+        futures.emplace_back(ThreadPool::DefaultThreadPool::submitJob([=]()
                                                  {
-                                                     for (auto i = start; i < start + task_size_; ++i)
-                                                     {
-                                                         population_[i].evaluate();
-                                                     }
+                                                     population_[i].evaluate();
                                                  }));
-        start += task_size_;
     }
 
     //do the remainder of the work in this thread;
-    for (auto i = start; i < population_.size(); ++i)
+    for (; i < population_.size(); ++i)
     {
         population_[i].evaluate();
     }

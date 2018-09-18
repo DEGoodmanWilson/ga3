@@ -29,7 +29,6 @@
 #include <vector>
 #include <functional>
 #include <ga3/chromosome.hpp>
-#include <ThreadPool/ThreadPool.hpp>
 
 namespace ga3
 {
@@ -53,11 +52,8 @@ public:
     population(uint64_t population_size,
                std::vector<gene_range> gene_bounds,
                chromosome::evaluation_function_t evaluation_function) :
-            num_threads_{single_threaded ? 0 :std::thread::hardware_concurrency() - 1},
             population_size_{population_size},
             most_fit_member_{0},
-            task_size_{(num_threads_ > 0) ? population_size_ / (num_threads_+1) : 0},
-            thread_pool_{num_threads_},
             selection_kind_{selection_kind_t::roulette},
             replacement_kind_{replacement_kind_t::generational},
             mutation_rate_{0.0},
@@ -73,11 +69,8 @@ public:
                std::vector<gene_range> gene_bounds,
                chromosome::evaluation_function_t evaluation_function,
                Os &&...os) :
-            num_threads_{single_threaded ? 0 : std::thread::hardware_concurrency() - 1},
             population_size_{population_size},
             most_fit_member_{0},
-            task_size_{(num_threads_ > 0) ? population_size_ / (num_threads_+1) : 0},
-            thread_pool_{num_threads_},
             selection_kind_{selection_kind_t::roulette},
             replacement_kind_{replacement_kind_t::generational},
             mutation_rate_{0.0},
@@ -127,8 +120,7 @@ private:
     std::vector<chromosome> population_;
     uint32_t num_threads_;
     size_t most_fit_member_;
-    uint64_t task_size_;
-    ThreadPool::ThreadPool thread_pool_;
+    uint64_t num_tasks_for_pool_;
     selection_kind_t selection_kind_;
     replacement_kind_t replacement_kind_;
     double mutation_rate_;
